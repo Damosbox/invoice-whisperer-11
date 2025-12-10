@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Invoices from "./pages/Invoices";
+import Upload from "./pages/Upload";
+import Suppliers from "./pages/Suppliers";
+import PurchaseOrders from "./pages/PurchaseOrders";
+import Exceptions from "./pages/Exceptions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,9 +26,19 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route element={<AppLayout />}>
+            <Route 
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route path="/" element={<Index />} />
               <Route path="/invoices" element={<Invoices />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/purchase-orders" element={<PurchaseOrders />} />
+              <Route path="/exceptions" element={<Exceptions />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
