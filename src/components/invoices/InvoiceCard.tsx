@@ -1,0 +1,99 @@
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { FileText, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { Invoice } from '@/types';
+
+interface InvoiceCardProps {
+  invoice: Invoice;
+  onClick?: () => void;
+}
+
+const getConfidenceLevel = (score: number | null): 'high' | 'medium' | 'low' => {
+  if (!score) return 'low';
+  if (score >= 0.85) return 'high';
+  if (score >= 0.65) return 'medium';
+  return 'low';
+};
+
+const getMatchStatusIcon = (status: string | null) => {
+  switch (status) {
+    case 'match_automatique':
+      return <CheckCircle2 className="h-3.5 w-3.5 text-status-validated" />;
+    case 'match_probable':
+      return <Clock className="h-3.5 w-3.5 text-status-pending" />;
+    case 'match_incertain':
+    case 'aucun_match':
+      return <AlertTriangle className="h-3.5 w-3.5 text-status-exception" />;
+    default:
+      return null;
+  }
+};
+
+export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
+  const confidenceLevel = getConfidenceLevel(invoice.ocr_confidence_score);
+  
+  const formattedAmount = invoice.amount_ttc 
+    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: invoice.currency || 'EUR' }).format(invoice.amount_ttc)
+    : '—';
+
+  const formattedDate = invoice.issue_date 
+    ? format(new Date(invoice.issue_date), 'dd MMM yyyy', { locale: fr })
+    : '—';
+
+  return (
+    <Card 
+      className="kanban-card cursor-pointer border-border/50 bg-card hover:border-primary/30"
+      onClick={onClick}
+    >
+      <CardContent className="p-3 space-y-2">
+        {/* Header: Supplier & Amount */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-medium text-sm truncate">
+              {invoice.supplier?.name || invoice.supplier_name_extracted || 'Fournisseur inconnu'}
+            </span>
+          </div>
+          <span className="font-semibold text-sm text-primary whitespace-nowrap">
+            {formattedAmount}
+          </span>
+        </div>
+
+        {/* Invoice number & Date */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="truncate">
+            {invoice.invoice_number || 'N° en attente'}
+          </span>
+          <span>{formattedDate}</span>
+        </div>
+
+        {/* Footer: Confidence & Match Status */}
+        <div className="flex items-center justify-between pt-1">
+          {invoice.ocr_confidence_score !== null && (
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "text-[10px] px-1.5 py-0",
+                confidenceLevel === 'high' && "border-confidence-high/50 text-confidence-high bg-confidence-high/10",
+                confidenceLevel === 'medium' && "border-confidence-medium/50 text-confidence-medium bg-confidence-medium/10",
+                confidenceLevel === 'low' && "border-confidence-low/50 text-confidence-low bg-confidence-low/10"
+              )}
+            >
+              {Math.round((invoice.ocr_confidence_score || 0) * 100)}%
+            </Badge>
+          )}
+          
+          <div className="flex items-center gap-1">
+            {invoice.has_anomalies && (
+              <AlertTriangle className="h-3.5 w-3.5 text-status-exception" />
+            )}
+            {getMatchStatusIcon(invoice.match_status)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
