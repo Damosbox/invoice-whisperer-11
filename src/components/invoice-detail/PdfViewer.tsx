@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, ExternalLink, AlertCircle } from 'lucide-react';
+import { FileText, Download, ExternalLink, AlertCircle, ShieldAlert } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface PdfViewerProps {
   filePath: string;
@@ -12,11 +13,13 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
 
   useEffect(() => {
     async function getSignedUrl() {
       setIsLoading(true);
       setError(null);
+      setIframeBlocked(false);
 
       try {
         const { data, error: signError } = await supabase.storage
@@ -37,6 +40,11 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
       getSignedUrl();
     }
   }, [filePath]);
+
+  // Handle iframe load error (blocked by corporate proxy/firewall)
+  const handleIframeError = () => {
+    setIframeBlocked(true);
+  };
 
   if (isLoading) {
     return (
@@ -76,6 +84,18 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         </Button>
       </div>
 
+      {/* Blocked iframe fallback UI */}
+      {iframeBlocked && (
+        <Alert variant="destructive" className="border-orange-500/50 bg-orange-500/10">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Affichage bloqué</AlertTitle>
+          <AlertDescription>
+            L'aperçu du document est bloqué par votre réseau d'entreprise (proxy/firewall). 
+            Utilisez les boutons ci-dessus pour ouvrir ou télécharger le fichier directement.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* PDF/Image viewer */}
       <div className="rounded-lg border bg-muted/20 overflow-hidden">
         {isPdf ? (
@@ -83,12 +103,27 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             src={`${pdfUrl}#toolbar=1&navpanes=0`}
             className="w-full h-[500px]"
             title="Facture PDF"
+            onError={handleIframeError}
+            onLoad={(e) => {
+              // Try to detect if iframe content was blocked
+              try {
+                const iframe = e.target as HTMLIFrameElement;
+                // If we can't access contentDocument due to CORS, it loaded fine
+                // If it's null/undefined AND there's no src, it might be blocked
+                if (!iframe.contentDocument && !iframe.contentWindow) {
+                  setIframeBlocked(true);
+                }
+              } catch {
+                // CORS error means it loaded from external origin - that's OK
+              }
+            }}
           />
         ) : (
           <img 
             src={pdfUrl} 
             alt="Facture" 
             className="w-full h-auto max-h-[500px] object-contain"
+            onError={() => setIframeBlocked(true)}
           />
         )}
       </div>
