@@ -209,6 +209,28 @@ Si un champ n'est pas trouvé, mets value à null et confidence à 0.`
 
     console.log(`OCR completed for invoice ${invoiceId}, confidence: ${avgConfidence}`);
 
+    // Trigger automatic matching if PO or BL number was extracted
+    if (ocrFields.po_number?.value || ocrFields.bl_number?.value) {
+      console.log(`Triggering automatic matching for invoice ${invoiceId}`);
+      
+      // Call match-invoice function asynchronously
+      const matchResponse = await fetch(`${supabaseUrl}/functions/v1/match-invoice`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invoiceId }),
+      });
+
+      if (!matchResponse.ok) {
+        console.error('Matching trigger failed:', await matchResponse.text());
+      } else {
+        const matchResult = await matchResponse.json();
+        console.log(`Matching result: ${matchResult.matchStatus}, score: ${matchResult.matchScore}`);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
