@@ -39,9 +39,9 @@ serve(async (req) => {
       throw new Error('invoiceId and filePath are required');
     }
 
-    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!DEEPSEEK_API_KEY) {
-      throw new Error('DEEPSEEK_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -70,15 +70,15 @@ serve(async (req) => {
     const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
     const mimeType = fileData.type || 'application/pdf';
 
-    // Call DeepSeek Vision API for OCR
-    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    // Call Lovable AI Gateway with Gemini Pro (vision capable)
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'system',
@@ -119,20 +119,26 @@ Si un champ n'est pas trouvé, mets value à null et confidence à 0.`
           }
         ],
         max_tokens: 2000,
-        temperature: 0.1
       }),
     });
 
-    if (!deepseekResponse.ok) {
-      const errorText = await deepseekResponse.text();
-      console.error('DeepSeek API error:', errorText);
-      throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('Lovable AI error:', errorText);
+      
+      if (aiResponse.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      if (aiResponse.status === 402) {
+        throw new Error('AI credits exhausted. Please add credits to continue.');
+      }
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
-    const deepseekData = await deepseekResponse.json();
-    const rawContent = deepseekData.choices?.[0]?.message?.content || '';
+    const aiData = await aiResponse.json();
+    const rawContent = aiData.choices?.[0]?.message?.content || '';
     
-    console.log('DeepSeek raw response:', rawContent);
+    console.log('AI raw response:', rawContent);
 
     // Parse JSON from response
     let ocrFields: OcrFields;
