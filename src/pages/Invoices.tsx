@@ -12,9 +12,7 @@ export default function Invoices() {
   const { data: invoices, isLoading, error, refetch } = useInvoices();
 
   const handleInvoiceClick = (invoice: Invoice) => {
-    toast.info(`Facture ${invoice.invoice_number || invoice.id} sélectionnée`);
-    // TODO: Navigate to invoice detail page
-    // navigate(`/invoices/${invoice.id}`);
+    navigate(`/invoices/${invoice.id}`);
   };
 
   if (error) {

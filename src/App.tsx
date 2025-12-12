@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Invoices from "./pages/Invoices";
+import InvoiceDetail from "./pages/InvoiceDetail";
 import Upload from "./pages/Upload";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
@@ -35,6 +36,7 @@ const App = () => (
             >
               <Route path="/" element={<Index />} />
               <Route path="/invoices" element={<Invoices />} />
+              <Route path="/invoices/:id" element={<InvoiceDetail />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/purchase-orders" element={<PurchaseOrders />} />
