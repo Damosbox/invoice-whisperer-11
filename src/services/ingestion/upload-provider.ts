@@ -4,9 +4,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { storageProvider } from "@/services/storage";
+import { processInvoiceOcr } from "@/services/ocr";
 import type { IngestionProvider, IngestionResult, IngestionOptions } from "./types";
 import type { Json } from "@/integrations/supabase/types";
-
 const ALLOWED_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -150,6 +150,17 @@ export class UploadIngestionProvider implements IngestionProvider {
         action: "created",
         changes: { source: this.source, filename: file.name },
         performed_by: options.userId,
+      });
+
+      // 9. Lancer l'OCR automatiquement (async, ne bloque pas)
+      processInvoiceOcr(invoice.id, path).then(ocrResult => {
+        if (!ocrResult.success) {
+          console.error('OCR processing failed:', ocrResult.error);
+        } else {
+          console.log('OCR completed, confidence:', ocrResult.confidenceScore);
+        }
+      }).catch(err => {
+        console.error('OCR processing error:', err);
       });
 
       return { 
