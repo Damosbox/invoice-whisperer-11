@@ -65,9 +65,19 @@ serve(async (req) => {
       throw new Error(`Failed to download file: ${downloadError.message}`);
     }
 
-    // Convert file to base64
+    // Convert file to base64 using chunked approach to avoid stack overflow
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Encode base64 in chunks to prevent stack overflow with large files
+    let base64 = '';
+    const chunkSize = 32768; // 32KB chunks
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      base64 += String.fromCharCode(...chunk);
+    }
+    base64 = btoa(base64);
+    
     const mimeType = fileData.type || 'application/pdf';
 
     // Call Lovable AI Gateway with Gemini Pro (vision capable)
