@@ -2,3 +2,6 @@ project_id = "nawscotqnwsugrwwnnal"
 
 [functions.process-ocr]
 verify_jwt = true
+
+[functions.match-invoice]
+verify_jwt = true
