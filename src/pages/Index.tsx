@@ -4,42 +4,28 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Clock,
-  ArrowRight
+  ArrowRight,
+  Euro,
+  Timer,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { KpiCard } from '@/components/dashboard/KpiCard';
+import { PriorityAlerts } from '@/components/dashboard/PriorityAlerts';
+import { StatusDistributionChart } from '@/components/dashboard/StatusDistributionChart';
+import { InvoiceTrendChart } from '@/components/dashboard/InvoiceTrendChart';
+import { TopSuppliersChart } from '@/components/dashboard/TopSuppliersChart';
+import { OverdueTable } from '@/components/dashboard/OverdueTable';
 
-const stats = [
-  { 
-    label: 'Factures ce mois', 
-    value: '—', 
-    icon: FileText, 
-    color: 'text-primary',
-    bgColor: 'bg-primary/10' 
-  },
-  { 
-    label: 'En attente', 
-    value: '—', 
-    icon: Clock, 
-    color: 'text-status-pending',
-    bgColor: 'bg-status-pending/10' 
-  },
-  { 
-    label: 'Validées', 
-    value: '—', 
-    icon: CheckCircle2, 
-    color: 'text-status-validated',
-    bgColor: 'bg-status-validated/10' 
-  },
-  { 
-    label: 'Exceptions', 
-    value: '—', 
-    icon: AlertTriangle, 
-    color: 'text-status-exception',
-    bgColor: 'bg-status-exception/10' 
-  },
-];
+const formatCurrency = (value: number) => {
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M€`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k€`;
+  return `${value.toFixed(0)}€`;
+};
 
 const quickActions = [
   { 
@@ -62,36 +48,110 @@ const quickActions = [
   },
 ];
 
+function DashboardSkeleton() {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Skeleton className="h-80" />
+        <Skeleton className="h-80 lg:col-span-2" />
+      </div>
+    </div>
+  );
+}
+
 export default function Index() {
   const navigate = useNavigate();
+  const { data: stats, isLoading, refetch, isRefetching } = useDashboardStats();
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Bienvenue sur SUTA Finance - Plateforme de gestion des factures fournisseurs
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Bienvenue sur SUTA Finance - Plateforme de gestion des factures fournisseurs
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => refetch()}
+          disabled={isRefetching}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
+          Actualiser
+        </Button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* KPIs Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <KpiCard
+          label="Factures ce mois"
+          value={stats?.totalInvoicesThisMonth ?? 0}
+          icon={FileText}
+          colorClass="text-primary"
+          bgClass="bg-primary/10"
+        />
+        <KpiCard
+          label="En attente"
+          value={stats?.pendingCount ?? 0}
+          icon={Clock}
+          colorClass="text-status-pending"
+          bgClass="bg-status-pending/10"
+        />
+        <KpiCard
+          label="Validées"
+          value={stats?.validatedCount ?? 0}
+          icon={CheckCircle2}
+          colorClass="text-status-validated"
+          bgClass="bg-status-validated/10"
+        />
+        <KpiCard
+          label="Exceptions"
+          value={stats?.exceptionCount ?? 0}
+          icon={AlertTriangle}
+          colorClass="text-status-exception"
+          bgClass="bg-status-exception/10"
+        />
+        <KpiCard
+          label="Montant à payer"
+          value={formatCurrency(stats?.totalAmountToPay ?? 0)}
+          icon={Euro}
+          colorClass="text-primary"
+          bgClass="bg-primary/10"
+        />
+        <KpiCard
+          label="Délai moyen"
+          value={`${stats?.averageProcessingDays ?? 0}j`}
+          icon={Timer}
+          colorClass="text-muted-foreground"
+          bgClass="bg-muted"
+        />
+      </div>
+
+      {/* Priority Alerts + Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <PriorityAlerts alerts={stats?.criticalAlerts ?? []} />
+        <div className="lg:col-span-2">
+          <InvoiceTrendChart data={stats?.invoicesByDay ?? []} />
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StatusDistributionChart data={stats?.invoicesByStatus ?? []} />
+        <TopSuppliersChart data={stats?.topSuppliers ?? []} />
+        <OverdueTable invoices={stats?.overdueInvoices ?? []} />
       </div>
 
       {/* Quick Actions */}
@@ -124,25 +184,6 @@ export default function Index() {
           ))}
         </div>
       </div>
-
-      {/* Info Card */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Phase 1 - MVP en cours
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>Fonctionnalités disponibles :</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Authentification et gestion des rôles</li>
-            <li>Navigation et layout principal</li>
-            <li>Inbox Kanban des factures</li>
-            <li>Import de factures (en cours)</li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 }
