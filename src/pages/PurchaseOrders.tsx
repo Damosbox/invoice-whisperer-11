@@ -1,47 +1,84 @@
-import { ClipboardList, Plus, Search } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import {
+  usePurchaseOrders,
+  useCreatePurchaseOrder,
+  useUpdatePurchaseOrder,
+  useDeletePurchaseOrder,
+  useImportPurchaseOrders,
+  PurchaseOrderWithSupplier,
+} from '@/hooks/usePurchaseOrders';
+import { PurchaseOrderTable } from '@/components/purchase-orders/PurchaseOrderTable';
+import { PurchaseOrderForm } from '@/components/purchase-orders/PurchaseOrderForm';
+import { PurchaseOrderImportDialog } from '@/components/purchase-orders/PurchaseOrderImportDialog';
 
 export default function PurchaseOrders() {
+  const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [editingPO, setEditingPO] = useState<PurchaseOrderWithSupplier | null>(null);
+
+  const { data: purchaseOrders = [], isLoading } = usePurchaseOrders();
+  const createMutation = useCreatePurchaseOrder();
+  const updateMutation = useUpdatePurchaseOrder();
+  const deleteMutation = useDeletePurchaseOrder();
+  const importMutation = useImportPurchaseOrders();
+
+  const handleAdd = () => {
+    setEditingPO(null);
+    setFormOpen(true);
+  };
+
+  const handleEdit = (po: PurchaseOrderWithSupplier) => {
+    setEditingPO(po);
+    setFormOpen(true);
+  };
+
+  const handleSubmit = (data: any) => {
+    if (editingPO) {
+      updateMutation.mutate(
+        { id: editingPO.id, ...data },
+        { onSuccess: () => setFormOpen(false) }
+      );
+    } else {
+      createMutation.mutate(data, { onSuccess: () => setFormOpen(false) });
+    }
+  };
+
+  const handleImport = (data: any[]) => {
+    importMutation.mutate(data, { onSuccess: () => setImportOpen(false) });
+  };
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Bons de commande</h1>
-          <p className="text-muted-foreground">
-            Référentiel des bons de commande pour le rapprochement
-          </p>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold">Bons de commande</h1>
+        <p className="text-muted-foreground">
+          Référentiel des bons de commande pour le rapprochement automatique
+        </p>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Rechercher un BC..." className="pl-9" />
-      </div>
+      <PurchaseOrderTable
+        purchaseOrders={purchaseOrders}
+        isLoading={isLoading}
+        onEdit={handleEdit}
+        onDelete={(id) => deleteMutation.mutate(id)}
+        onAdd={handleAdd}
+        onImport={() => setImportOpen(true)}
+      />
 
-      {/* Empty State */}
-      <Card>
-        <CardContent className="p-12">
-          <div className="flex flex-col items-center justify-center text-center space-y-4">
-            <div className="p-4 rounded-full bg-muted">
-              <ClipboardList className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium">Aucun bon de commande</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Importez vos bons de commande pour activer le rapprochement automatique
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <PurchaseOrderForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        purchaseOrder={editingPO}
+        onSubmit={handleSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      <PurchaseOrderImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImport={handleImport}
+        isLoading={importMutation.isPending}
+      />
     </div>
   );
 }
