@@ -1,15 +1,17 @@
-import { FileText, Upload, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Upload, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InvoiceKanban } from '@/components/invoices/InvoiceKanban';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { AccountingExportDialog } from '@/components/export/AccountingExportDialog';
 import type { Invoice } from '@/types';
 
 export default function Invoices() {
   const navigate = useNavigate();
   const { data: invoices, isLoading, error, refetch } = useInvoices();
+  const [exportOpen, setExportOpen] = useState(false);
 
   const handleInvoiceClick = (invoice: Invoice) => {
     navigate(`/invoices/${invoice.id}`);
@@ -42,6 +44,10 @@ export default function Invoices() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4 mr-2" />
+              Export compta
+            </Button>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualiser
@@ -71,6 +77,9 @@ export default function Invoices() {
           onInvoiceClick={handleInvoiceClick}
         />
       )}
+
+      {/* Export Dialog */}
+      <AccountingExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </div>
   );
 }
