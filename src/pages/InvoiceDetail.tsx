@@ -13,6 +13,7 @@ import { OcrFieldsDisplay } from '@/components/invoice-detail/OcrFieldsDisplay';
 import { InvoiceEditForm } from '@/components/invoice-detail/InvoiceEditForm';
 import { WorkflowActions } from '@/components/invoice-detail/WorkflowActions';
 import { MatchingInfo } from '@/components/invoice-detail/MatchingInfo';
+import { ApprovalWorkflowPanel } from '@/components/approval/ApprovalWorkflowPanel';
 import { useState } from 'react';
 
 const statusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -195,6 +196,16 @@ export default function InvoiceDetail() {
 
           {/* Matching info */}
           <MatchingInfo invoice={invoice} />
+
+          {/* Approval Workflow */}
+          <ApprovalWorkflowPanel
+            invoiceId={invoice.id}
+            invoiceAmount={invoice.amount_ttc || 0}
+            isCriticalSupplier={invoice.supplier?.is_critical || false}
+            invoiceStatus={invoice.status}
+            currentLevel={(invoice as any).current_approval_level}
+            requiredLevels={(invoice as any).required_approval_levels}
+          />
 
           {/* Workflow Actions */}
           <WorkflowActions 

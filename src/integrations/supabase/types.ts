@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_history: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          invoice_id: string
+          level: number
+          required_role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          invoice_id: string
+          level: number
+          required_role: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          level?: number
+          required_role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_history_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_rules: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_critical_supplier: boolean | null
+          level_1_role: Database["public"]["Enums"]["app_role"]
+          level_2_role: Database["public"]["Enums"]["app_role"] | null
+          level_3_role: Database["public"]["Enums"]["app_role"] | null
+          max_amount: number | null
+          min_amount: number | null
+          name: string
+          priority: number
+          required_levels: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical_supplier?: boolean | null
+          level_1_role?: Database["public"]["Enums"]["app_role"]
+          level_2_role?: Database["public"]["Enums"]["app_role"] | null
+          level_3_role?: Database["public"]["Enums"]["app_role"] | null
+          max_amount?: number | null
+          min_amount?: number | null
+          name: string
+          priority?: number
+          required_levels?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical_supplier?: boolean | null
+          level_1_role?: Database["public"]["Enums"]["app_role"]
+          level_2_role?: Database["public"]["Enums"]["app_role"] | null
+          level_3_role?: Database["public"]["Enums"]["app_role"] | null
+          max_amount?: number | null
+          min_amount?: number | null
+          name?: string
+          priority?: number
+          required_levels?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -156,12 +251,14 @@ export type Database = {
           amount_tva: number | null
           anomaly_details: Json | null
           anomaly_types: string[] | null
+          approval_rule_id: string | null
           approved_at: string | null
           approved_by: string | null
           bl_number_extracted: string | null
           created_at: string
           created_by: string | null
           currency: string | null
+          current_approval_level: number | null
           current_approver_id: string | null
           delivery_note_id: string | null
           due_date: string | null
@@ -185,6 +282,7 @@ export type Database = {
           purchase_order_id: string | null
           received_date: string | null
           rejection_reason: string | null
+          required_approval_levels: number | null
           source: string | null
           status: Database["public"]["Enums"]["invoice_status"] | null
           supplier_id: string | null
@@ -198,12 +296,14 @@ export type Database = {
           amount_tva?: number | null
           anomaly_details?: Json | null
           anomaly_types?: string[] | null
+          approval_rule_id?: string | null
           approved_at?: string | null
           approved_by?: string | null
           bl_number_extracted?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
+          current_approval_level?: number | null
           current_approver_id?: string | null
           delivery_note_id?: string | null
           due_date?: string | null
@@ -227,6 +327,7 @@ export type Database = {
           purchase_order_id?: string | null
           received_date?: string | null
           rejection_reason?: string | null
+          required_approval_levels?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["invoice_status"] | null
           supplier_id?: string | null
@@ -240,12 +341,14 @@ export type Database = {
           amount_tva?: number | null
           anomaly_details?: Json | null
           anomaly_types?: string[] | null
+          approval_rule_id?: string | null
           approved_at?: string | null
           approved_by?: string | null
           bl_number_extracted?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
+          current_approval_level?: number | null
           current_approver_id?: string | null
           delivery_note_id?: string | null
           due_date?: string | null
@@ -269,6 +372,7 @@ export type Database = {
           purchase_order_id?: string | null
           received_date?: string | null
           rejection_reason?: string | null
+          required_approval_levels?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["invoice_status"] | null
           supplier_id?: string | null
@@ -276,6 +380,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_approval_rule_id_fkey"
+            columns: ["approval_rule_id"]
+            isOneToOne: false
+            referencedRelation: "approval_rules"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_delivery_note_id_fkey"
             columns: ["delivery_note_id"]
