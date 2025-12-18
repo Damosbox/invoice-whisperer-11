@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { KanbanColumn } from './KanbanColumn';
+import { useUpdateInvoiceStatus } from '@/hooks/useInvoices';
+import { toast } from 'sonner';
 import type { Invoice, InvoiceStatus } from '@/types';
 
 interface InvoiceKanbanProps {
@@ -19,13 +21,37 @@ const KANBAN_COLUMNS: { status: InvoiceStatus; title: string }[] = [
   { status: 'comptabilisee', title: 'Comptabilisées' },
 ];
 
+const STATUS_LABELS: Record<InvoiceStatus, string> = {
+  nouvelle: 'Nouvelles',
+  a_valider_extraction: 'À valider (OCR)',
+  a_rapprocher: 'À rapprocher',
+  a_approuver: 'À approuver',
+  exception: 'Exceptions',
+  litige: 'Litiges',
+  prete_comptabilisation: 'Prêtes compta',
+  comptabilisee: 'Comptabilisées',
+};
+
 export function InvoiceKanban({ invoices, onInvoiceClick }: InvoiceKanbanProps) {
+  const updateStatus = useUpdateInvoiceStatus();
+
   const columns = useMemo(() => {
     return KANBAN_COLUMNS.map(({ status, title }) => {
       const columnInvoices = invoices.filter((inv) => inv.status === status);
       return { status, title, invoices: columnInvoices };
     });
   }, [invoices]);
+
+  const handleDrop = (invoiceId: string, newStatus: InvoiceStatus) => {
+    updateStatus.mutate(
+      { id: invoiceId, status: newStatus },
+      {
+        onSuccess: () => {
+          toast.success(`Facture déplacée vers "${STATUS_LABELS[newStatus]}"`);
+        },
+      }
+    );
+  };
 
   return (
     <ScrollArea className="w-full">
@@ -37,6 +63,7 @@ export function InvoiceKanban({ invoices, onInvoiceClick }: InvoiceKanbanProps) 
             title={column.title}
             invoices={column.invoices}
             onInvoiceClick={onInvoiceClick}
+            onDrop={handleDrop}
             className="h-full"
           />
         ))}

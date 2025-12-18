@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +10,7 @@ interface KanbanColumnProps {
   title: string;
   invoices: Invoice[];
   onInvoiceClick?: (invoice: Invoice) => void;
+  onDrop?: (invoiceId: string, newStatus: InvoiceStatus) => void;
   className?: string;
 }
 
@@ -28,8 +30,11 @@ export function KanbanColumn({
   title, 
   invoices, 
   onInvoiceClick,
+  onDrop,
   className 
 }: KanbanColumnProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  
   const totalAmount = invoices.reduce((sum, inv) => sum + (inv.amount_ttc || 0), 0);
   const formattedTotal = new Intl.NumberFormat('fr-FR', { 
     style: 'currency', 
@@ -37,8 +42,40 @@ export function KanbanColumn({
     notation: 'compact'
   }).format(totalAmount);
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const invoiceId = e.dataTransfer.getData('invoiceId');
+    const currentStatus = e.dataTransfer.getData('currentStatus');
+    
+    if (invoiceId && currentStatus !== status) {
+      onDrop?.(invoiceId, status);
+    }
+  };
+
   return (
-    <div className={cn("flex flex-col min-w-[280px] max-w-[320px] bg-muted/30 rounded-lg", className)}>
+    <div 
+      className={cn(
+        "flex flex-col min-w-[280px] max-w-[320px] bg-muted/30 rounded-lg transition-all duration-200",
+        isDragOver && "bg-primary/10 ring-2 ring-primary/30 ring-dashed",
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Column Header */}
       <div className="p-3 border-b border-border/50">
         <div className="flex items-center justify-between mb-1">
@@ -55,10 +92,13 @@ export function KanbanColumn({
 
       {/* Column Content */}
       <ScrollArea className="flex-1 p-2">
-        <div className="space-y-2">
+        <div className="space-y-2 min-h-[100px]">
           {invoices.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-8">
-              Aucune facture
+            <p className={cn(
+              "text-xs text-muted-foreground text-center py-8 transition-colors",
+              isDragOver && "text-primary"
+            )}>
+              {isDragOver ? 'Déposer ici' : 'Aucune facture'}
             </p>
           ) : (
             invoices.map((invoice) => (
