@@ -1,6 +1,7 @@
+import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { FileText, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { FileText, AlertTriangle, CheckCircle2, Clock, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import type { Invoice } from '@/types';
 interface InvoiceCardProps {
   invoice: Invoice;
   onClick?: () => void;
+  isDragging?: boolean;
 }
 
 const getConfidenceLevel = (score: number | null): 'high' | 'medium' | 'low' => {
@@ -32,7 +34,7 @@ const getMatchStatusIcon = (status: string | null) => {
   }
 };
 
-export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
+export function InvoiceCard({ invoice, onClick, isDragging }: InvoiceCardProps) {
   const confidenceLevel = getConfidenceLevel(invoice.ocr_confidence_score);
   
   const formattedAmount = invoice.amount_ttc 
@@ -43,15 +45,27 @@ export function InvoiceCard({ invoice, onClick }: InvoiceCardProps) {
     ? format(new Date(invoice.issue_date), 'dd MMM yyyy', { locale: fr })
     : '—';
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('invoiceId', invoice.id);
+    e.dataTransfer.setData('currentStatus', invoice.status);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <Card 
-      className="kanban-card cursor-pointer border-border/50 bg-card hover:border-primary/30"
+      className={cn(
+        "kanban-card cursor-grab border-border/50 bg-card hover:border-primary/30 transition-all",
+        isDragging && "opacity-50 rotate-2 scale-105 shadow-lg"
+      )}
+      draggable
+      onDragStart={handleDragStart}
       onClick={onClick}
     >
       <CardContent className="p-3 space-y-2">
         {/* Header: Supplier & Amount */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
+            <GripVertical className="h-4 w-4 text-muted-foreground/50 shrink-0" />
             <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="font-medium text-sm truncate">
               {invoice.supplier?.name || invoice.supplier_name_extracted || 'Fournisseur inconnu'}

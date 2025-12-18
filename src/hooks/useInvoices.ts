@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { Invoice, InvoiceStatus, MatchStatus } from '@/types';
 
 export function useInvoices() {
@@ -78,6 +79,30 @@ export function useInvoices() {
           bl_number: invoice.delivery_note.bl_number,
         } as Invoice['delivery_note'] : undefined,
       }));
+    },
+  });
+}
+
+export function useUpdateInvoiceStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: InvoiceStatus }) => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
     },
   });
 }
