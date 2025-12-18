@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
+import { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 export interface ApprovalRule {
   id: string;
   name: string;
@@ -40,18 +40,90 @@ const ROLE_LABELS: Record<string, string> = {
 
 export const getRoleLabel = (role: string) => ROLE_LABELS[role] || role;
 
-export function useApprovalRules() {
+export function useApprovalRules(includeInactive = false) {
   return useQuery({
-    queryKey: ['approval-rules'],
+    queryKey: ['approval-rules', includeInactive],
     queryFn: async (): Promise<ApprovalRule[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('approval_rules')
         .select('*')
-        .eq('is_active', true)
         .order('priority', { ascending: false });
 
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
+    },
+  });
+}
+
+export type ApprovalRuleInsert = TablesInsert<'approval_rules'>;
+export type ApprovalRuleUpdate = TablesUpdate<'approval_rules'>;
+
+export function useCreateApprovalRule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: ApprovalRuleInsert) => {
+      const { error } = await supabase
+        .from('approval_rules')
+        .insert(data);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] });
+      toast.success('Règle créée avec succès');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdateApprovalRule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: ApprovalRuleUpdate & { id: string }) => {
+      const { error } = await supabase
+        .from('approval_rules')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] });
+      toast.success('Règle mise à jour');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+}
+
+export function useDeleteApprovalRule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('approval_rules')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] });
+      toast.success('Règle supprimée');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
     },
   });
 }

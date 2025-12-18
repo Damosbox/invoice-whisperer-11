@@ -8,7 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
-  ClipboardList
+  ClipboardList,
+  ShieldCheck
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,10 @@ const referenceNavItems = [
   { to: '/suppliers', icon: Users, label: 'Fournisseurs' },
   { to: '/purchase-orders', icon: ClipboardList, label: 'Bons de commande' },
   { to: '/exceptions', icon: AlertTriangle, label: 'Exceptions' },
+];
+
+const adminNavItems = [
+  { to: '/approval-rules', icon: ShieldCheck, label: 'Règles d\'approbation' },
 ];
 
 export function AppLayout() {
@@ -108,6 +113,34 @@ export function AppLayout() {
               </p>
             )}
             {referenceNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    isActive 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    collapsed && "justify-center px-2"
+                  )
+                }
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            ))}
+          </div>
+
+          <Separator />
+
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Administration
+              </p>
+            )}
+            {adminNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
