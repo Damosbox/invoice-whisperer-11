@@ -9,7 +9,8 @@ import {
   ChevronRight,
   AlertTriangle,
   ClipboardList,
-  ShieldCheck
+  ShieldCheck,
+  UserCog
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const referenceNavItems = [
 
 const adminNavItems = [
   { to: '/approval-rules', icon: ShieldCheck, label: 'Règles d\'approbation' },
+  { to: '/user-roles', icon: UserCog, label: 'Gestion des rôles' },
 ];
 
 export function AppLayout() {

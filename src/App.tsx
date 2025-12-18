@@ -16,6 +16,7 @@ import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import Exceptions from "./pages/Exceptions";
 import ApprovalRules from "./pages/ApprovalRules";
+import UserRoles from "./pages/UserRoles";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/purchase-orders" element={<PurchaseOrders />} />
                 <Route path="/exceptions" element={<Exceptions />} />
                 <Route path="/approval-rules" element={<ApprovalRules />} />
+                <Route path="/user-roles" element={<UserRoles />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
