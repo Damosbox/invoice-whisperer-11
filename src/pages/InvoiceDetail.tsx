@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Invoice, OcrFields } from '@/types';
+import { Invoice, OcrFields, OcrField } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,7 @@ export default function InvoiceDetail() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [highlightedField, setHighlightedField] = useState<OcrField | null>(null);
 
   const { data: invoice, isLoading, error } = useQuery({
     queryKey: ['invoice', id],
@@ -66,7 +67,6 @@ export default function InvoiceDetail() {
 
       if (error) throw error;
       
-      // Transform to Invoice type
       return {
         ...data,
         ocr_fields: data.ocr_fields as unknown as OcrFields | null,
@@ -77,7 +77,6 @@ export default function InvoiceDetail() {
     enabled: !!id,
   });
 
-  // Get signed URL for PDF actions
   useEffect(() => {
     async function getUrl() {
       if (invoice?.file_path) {
@@ -146,7 +145,7 @@ export default function InvoiceDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Header with back button, title, badges, and document actions */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}>
@@ -157,7 +156,6 @@ export default function InvoiceDetail() {
               <FileText className="h-6 w-6 text-primary" />
               {invoice.invoice_number || invoice.original_filename || 'Facture sans numéro'}
             </h1>
-            {/* OCR and Status badges inline with title */}
             {invoice.ocr_confidence_score !== null && (
               <Badge variant="outline" className={cn("gap-1", getOcrConfidenceColor(invoice.ocr_confidence_score))}>
                 OCR: {formatOcrScore(invoice.ocr_confidence_score)}
@@ -173,7 +171,6 @@ export default function InvoiceDetail() {
           </div>
         </div>
         
-        {/* Document action buttons aligned right */}
         <div className="flex items-center gap-2">
           {pdfUrl && (
             <>
@@ -194,26 +191,36 @@ export default function InvoiceDetail() {
         </div>
       </div>
 
-      {/* Supplier name subtitle */}
       <p className="text-muted-foreground -mt-4 ml-14">
         {invoice.supplier_name_extracted || invoice.supplier?.name || 'Fournisseur inconnu'}
       </p>
 
       {/* Main content - 2 columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: PDF Viewer (without its own action buttons) */}
-        <Card className="h-fit">
+        {/* Left: PDF Viewer with interactive zoom */}
+        <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Document</CardTitle>
+            <CardTitle className="text-lg flex items-center justify-between">
+              Document
+              {highlightedField && (
+                <span className="text-xs font-normal text-primary animate-pulse">
+                  Zone mise en évidence
+                </span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <PdfViewer filePath={invoice.file_path} hideActions />
+            <PdfViewer 
+              filePath={invoice.file_path} 
+              hideActions 
+              highlightedField={highlightedField}
+            />
           </CardContent>
         </Card>
 
         {/* Right: Invoice data and actions */}
         <div className="space-y-6">
-          {/* OCR Fields with confidence */}
+          {/* OCR Fields with confidence and hover interaction */}
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Données extraites</CardTitle>
@@ -238,15 +245,14 @@ export default function InvoiceDetail() {
                 <OcrFieldsDisplay 
                   invoice={invoice}
                   ocrFields={invoice.ocr_fields as OcrFields | null}
+                  onFieldHover={setHighlightedField}
                 />
               )}
             </CardContent>
           </Card>
 
-          {/* Matching info */}
           <MatchingInfo invoice={invoice} />
 
-          {/* Approval Workflow */}
           <ApprovalWorkflowPanel
             invoiceId={invoice.id}
             invoiceAmount={invoice.amount_ttc || 0}
@@ -256,7 +262,6 @@ export default function InvoiceDetail() {
             requiredLevels={(invoice as any).required_approval_levels}
           />
 
-          {/* Workflow Actions */}
           <WorkflowActions 
             invoice={invoice}
             onStatusChange={(newStatus) => updateMutation.mutate({ status: newStatus })}
