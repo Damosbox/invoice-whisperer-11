@@ -1,13 +1,14 @@
 import { Invoice, OcrFields, OcrField } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertTriangle, XCircle, HelpCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface OcrFieldsDisplayProps {
   invoice: Invoice;
   ocrFields: OcrFields | null;
+  onFieldHover?: (field: OcrField | null) => void;
 }
 
 interface FieldRowProps {
@@ -15,10 +16,10 @@ interface FieldRowProps {
   value: string | number | null | undefined;
   ocrField?: OcrField;
   format?: 'text' | 'currency' | 'date';
+  onHover?: (field: OcrField | null) => void;
 }
 
 function ConfidenceIndicator({ confidence }: { confidence: number }) {
-  // Normalize confidence to 0-100 if it's in 0-1 format
   const normalizedConfidence = confidence > 1 ? confidence : confidence * 100;
   
   if (normalizedConfidence >= 90) {
@@ -61,7 +62,7 @@ function ConfidenceIndicator({ confidence }: { confidence: number }) {
   );
 }
 
-function FieldRow({ label, value, ocrField, format: formatType = 'text' }: FieldRowProps) {
+function FieldRow({ label, value, ocrField, format: formatType = 'text', onHover }: FieldRowProps) {
   let displayValue = value;
   
   if (formatType === 'currency' && typeof value === 'number') {
@@ -77,9 +78,23 @@ function FieldRow({ label, value, ocrField, format: formatType = 'text' }: Field
     }
   }
 
+  const hasBoundingBox = ocrField?.bounding_box;
+
   return (
-    <div className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
+    <div 
+      className={cn(
+        "flex items-center justify-between py-2 border-b border-border/50 last:border-0 transition-colors",
+        hasBoundingBox && "cursor-pointer hover:bg-primary/5 rounded px-2 -mx-2"
+      )}
+      onMouseEnter={() => hasBoundingBox && onHover?.(ocrField)}
+      onMouseLeave={() => onHover?.(null)}
+    >
+      <span className="text-sm text-muted-foreground flex items-center gap-1">
+        {label}
+        {hasBoundingBox && (
+          <span className="text-[10px] text-primary/60">(survol = zoom)</span>
+        )}
+      </span>
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">
           {displayValue ?? <span className="text-muted-foreground italic">Non renseigné</span>}
@@ -90,7 +105,7 @@ function FieldRow({ label, value, ocrField, format: formatType = 'text' }: Field
   );
 }
 
-export function OcrFieldsDisplay({ invoice, ocrFields }: OcrFieldsDisplayProps) {
+export function OcrFieldsDisplay({ invoice, ocrFields, onFieldHover }: OcrFieldsDisplayProps) {
   return (
     <div className="space-y-4">
       {/* Identification */}
@@ -103,23 +118,27 @@ export function OcrFieldsDisplay({ invoice, ocrFields }: OcrFieldsDisplayProps) 
             label="N° Facture" 
             value={invoice.invoice_number} 
             ocrField={ocrFields?.invoice_number}
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="Fournisseur" 
             value={invoice.supplier_name_extracted || invoice.supplier?.name} 
             ocrField={ocrFields?.supplier_name}
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="Date émission" 
             value={invoice.issue_date} 
             ocrField={ocrFields?.issue_date}
             format="date"
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="Date échéance" 
             value={invoice.due_date} 
             ocrField={ocrFields?.due_date}
             format="date"
+            onHover={onFieldHover}
           />
         </div>
       </div>
@@ -135,23 +154,27 @@ export function OcrFieldsDisplay({ invoice, ocrFields }: OcrFieldsDisplayProps) 
             value={invoice.amount_ht} 
             ocrField={ocrFields?.amount_ht}
             format="currency"
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="TVA" 
             value={invoice.amount_tva} 
             ocrField={ocrFields?.amount_tva}
             format="currency"
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="Montant TTC" 
             value={invoice.amount_ttc} 
             ocrField={ocrFields?.amount_ttc}
             format="currency"
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="Devise" 
             value={invoice.currency} 
             ocrField={ocrFields?.currency}
+            onHover={onFieldHover}
           />
         </div>
       </div>
@@ -166,16 +189,19 @@ export function OcrFieldsDisplay({ invoice, ocrFields }: OcrFieldsDisplayProps) 
             label="N° Bon de Commande" 
             value={invoice.po_number_extracted} 
             ocrField={ocrFields?.po_number}
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="N° Bon de Livraison" 
             value={invoice.bl_number_extracted} 
             ocrField={ocrFields?.bl_number}
+            onHover={onFieldHover}
           />
           <FieldRow 
             label="IBAN" 
             value={invoice.iban_extracted} 
             ocrField={ocrFields?.iban}
+            onHover={onFieldHover}
           />
         </div>
       </div>
