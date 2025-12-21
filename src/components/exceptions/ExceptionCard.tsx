@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ExceptionInvoice } from '@/hooks/useExceptions';
 import { useNavigate } from 'react-router-dom';
+import { AnomalyExplanationDialog } from './AnomalyExplanationDialog';
 
 interface ExceptionCardProps {
   invoice: ExceptionInvoice;
@@ -111,9 +112,12 @@ export function ExceptionCard({
 
             {/* Anomalies */}
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase">
-                Anomalies détectées
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase">
+                  Anomalies détectées
+                </p>
+                <AnomalyExplanationDialog invoice={invoice} />
+              </div>
               <div className="flex flex-wrap gap-2">
                 {anomalies.length > 0 ? (
                   anomalies.map((anomaly) => (
