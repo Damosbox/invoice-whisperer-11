@@ -7,14 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CheckCircle, XCircle, AlertTriangle, FileText, Save } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, Download, ExternalLink } from 'lucide-react';
 import { PdfViewer } from '@/components/invoice-detail/PdfViewer';
 import { OcrFieldsDisplay } from '@/components/invoice-detail/OcrFieldsDisplay';
 import { InvoiceEditForm } from '@/components/invoice-detail/InvoiceEditForm';
 import { WorkflowActions } from '@/components/invoice-detail/WorkflowActions';
 import { MatchingInfo } from '@/components/invoice-detail/MatchingInfo';
 import { ApprovalWorkflowPanel } from '@/components/approval/ApprovalWorkflowPanel';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 const statusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   nouvelle: { label: 'Nouvelle', variant: 'secondary' },
@@ -27,12 +28,27 @@ const statusLabels: Record<string, { label: string; variant: 'default' | 'second
   comptabilisee: { label: 'Comptabilisée', variant: 'outline' },
 };
 
+function getOcrConfidenceColor(score: number | null): string {
+  if (score === null) return 'bg-muted text-muted-foreground';
+  const normalizedScore = score > 1 ? score : score * 100;
+  if (normalizedScore >= 90) return 'bg-green-500/10 text-green-600 border-green-500/50';
+  if (normalizedScore >= 80) return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/50';
+  return 'bg-red-500/10 text-red-600 border-red-500/50';
+}
+
+function formatOcrScore(score: number | null): string {
+  if (score === null) return '—';
+  const normalizedScore = score > 1 ? score : score * 100;
+  return `${Math.round(normalizedScore)}%`;
+}
+
 export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const { data: invoice, isLoading, error } = useQuery({
     queryKey: ['invoice', id],
@@ -60,6 +76,19 @@ export default function InvoiceDetail() {
     },
     enabled: !!id,
   });
+
+  // Get signed URL for PDF actions
+  useEffect(() => {
+    async function getUrl() {
+      if (invoice?.file_path) {
+        const { data } = await supabase.storage
+          .from('invoices')
+          .createSignedUrl(invoice.file_path, 3600);
+        if (data) setPdfUrl(data.signedUrl);
+      }
+    }
+    getUrl();
+  }, [invoice?.file_path]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Record<string, unknown>) => {
@@ -117,48 +146,68 @@ export default function InvoiceDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with back button, title, badges, and document actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
               {invoice.invoice_number || invoice.original_filename || 'Facture sans numéro'}
             </h1>
-            <p className="text-muted-foreground">
-              {invoice.supplier_name_extracted || invoice.supplier?.name || 'Fournisseur inconnu'}
-            </p>
+            {/* OCR and Status badges inline with title */}
+            {invoice.ocr_confidence_score !== null && (
+              <Badge variant="outline" className={cn("gap-1", getOcrConfidenceColor(invoice.ocr_confidence_score))}>
+                OCR: {formatOcrScore(invoice.ocr_confidence_score)}
+              </Badge>
+            )}
+            <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+            {invoice.has_anomalies && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Anomalies
+              </Badge>
+            )}
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-          {invoice.has_anomalies && (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              Anomalies
-            </Badge>
-          )}
-          {invoice.ocr_confidence_score !== null && (
-            <Badge variant="outline" className="gap-1">
-              OCR: {invoice.ocr_confidence_score}%
-            </Badge>
+        {/* Document action buttons aligned right */}
+        <div className="flex items-center gap-2">
+          {pdfUrl && (
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ouvrir
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <a href={pdfUrl} download>
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger
+                </a>
+              </Button>
+            </>
           )}
         </div>
       </div>
 
+      {/* Supplier name subtitle */}
+      <p className="text-muted-foreground -mt-4 ml-14">
+        {invoice.supplier_name_extracted || invoice.supplier?.name || 'Fournisseur inconnu'}
+      </p>
+
       {/* Main content - 2 columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: PDF Viewer */}
+        {/* Left: PDF Viewer (without its own action buttons) */}
         <Card className="h-fit">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Document</CardTitle>
           </CardHeader>
           <CardContent>
-            <PdfViewer filePath={invoice.file_path} />
+            <PdfViewer filePath={invoice.file_path} hideActions />
           </CardContent>
         </Card>
 
