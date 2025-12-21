@@ -65,7 +65,7 @@ serve(async (req) => {
       },
     };
 
-    // 2. Recherche du fournisseur
+    // 2. Recherche du fournisseur (ou création automatique s'il n'existe pas)
     if (invoice.supplier_name_extracted) {
       const { data: suppliers } = await supabase
         .from('suppliers')
@@ -82,6 +82,58 @@ serve(async (req) => {
           method: 'name_search',
           supplier_name: supplier.name,
         };
+      } else {
+        // Création automatique du fournisseur à partir des données OCR
+        console.log(`No supplier found for "${invoice.supplier_name_extracted}", creating new supplier...`);
+        
+        const ocrFields = invoice.ocr_fields || {};
+        const newSupplierData = {
+          name: invoice.supplier_name_extracted,
+          iban: invoice.iban_extracted || ocrFields.iban?.value || null,
+          fiscal_identifier: ocrFields.fiscal_identifier?.value || null,
+          company_identifier: ocrFields.company_identifier?.value || null,
+          address: ocrFields.supplier_address?.value || null,
+          email: ocrFields.supplier_email?.value || null,
+          phone: ocrFields.supplier_phone?.value || null,
+          country: 'CI', // Défaut Côte d'Ivoire
+          notes: `Créé automatiquement depuis facture OCR le ${new Date().toLocaleDateString('fr-FR')}`,
+        };
+
+        const { data: newSupplier, error: createError } = await supabase
+          .from('suppliers')
+          .insert(newSupplierData)
+          .select('id, name')
+          .single();
+
+        if (createError) {
+          console.error('Failed to create supplier:', createError.message);
+          matchResult.matchDetails.supplier_match = {
+            found: false,
+            score: 0,
+            method: 'auto_create_failed',
+          };
+        } else {
+          console.log(`Created new supplier: ${newSupplier.name} (${newSupplier.id})`);
+          matchResult.supplierId = newSupplier.id;
+          matchResult.matchDetails.supplier_match = {
+            found: true,
+            score: 0.6, // Score légèrement plus bas car créé automatiquement
+            method: 'auto_created',
+            supplier_name: newSupplier.name,
+          };
+
+          // Log d'audit pour la création du fournisseur
+          await supabase.from('audit_logs').insert({
+            entity_type: 'supplier',
+            entity_id: newSupplier.id,
+            action: 'auto_created_from_ocr',
+            changes: {
+              invoice_id: invoiceId,
+              source_name: invoice.supplier_name_extracted,
+              created_fields: Object.keys(newSupplierData).filter(k => newSupplierData[k as keyof typeof newSupplierData]),
+            },
+          });
+        }
       }
     }
 
