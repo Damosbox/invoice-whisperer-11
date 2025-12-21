@@ -588,8 +588,11 @@ export type Database = {
         Row: {
           address: string | null
           bic: string | null
+          company_identifier: string | null
+          country: string | null
           created_at: string
           email: string | null
+          fiscal_identifier: string | null
           iban: string | null
           id: string
           identifier: string | null
@@ -603,8 +606,11 @@ export type Database = {
         Insert: {
           address?: string | null
           bic?: string | null
+          company_identifier?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
+          fiscal_identifier?: string | null
           iban?: string | null
           id?: string
           identifier?: string | null
@@ -618,8 +624,11 @@ export type Database = {
         Update: {
           address?: string | null
           bic?: string | null
+          company_identifier?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
+          fiscal_identifier?: string | null
           iban?: string | null
           id?: string
           identifier?: string | null

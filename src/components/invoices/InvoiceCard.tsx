@@ -14,10 +14,18 @@ interface InvoiceCardProps {
 }
 
 const getConfidenceLevel = (score: number | null): 'high' | 'medium' | 'low' => {
-  if (!score) return 'low';
-  if (score >= 0.85) return 'high';
-  if (score >= 0.65) return 'medium';
+  if (score === null) return 'low';
+  // Score is stored as 0-100 (percentage) or 0-1 (decimal)
+  const normalizedScore = score > 1 ? score : score * 100;
+  if (normalizedScore >= 90) return 'high';
+  if (normalizedScore >= 80) return 'medium';
   return 'low';
+};
+
+const formatConfidenceDisplay = (score: number | null): string => {
+  if (score === null) return '—';
+  const normalizedScore = score > 1 ? score : score * 100;
+  return `${Math.round(normalizedScore)}%`;
 };
 
 const getMatchStatusIcon = (status: string | null) => {
@@ -91,12 +99,12 @@ export function InvoiceCard({ invoice, onClick, isDragging }: InvoiceCardProps) 
               variant="outline" 
               className={cn(
                 "text-[10px] px-1.5 py-0",
-                confidenceLevel === 'high' && "border-confidence-high/50 text-confidence-high bg-confidence-high/10",
-                confidenceLevel === 'medium' && "border-confidence-medium/50 text-confidence-medium bg-confidence-medium/10",
-                confidenceLevel === 'low' && "border-confidence-low/50 text-confidence-low bg-confidence-low/10"
+                confidenceLevel === 'high' && "border-green-500/50 text-green-500 bg-green-500/10",
+                confidenceLevel === 'medium' && "border-yellow-500/50 text-yellow-500 bg-yellow-500/10",
+                confidenceLevel === 'low' && "border-red-500/50 text-red-500 bg-red-500/10"
               )}
             >
-              {Math.round((invoice.ocr_confidence_score || 0) * 100)}%
+              {formatConfidenceDisplay(invoice.ocr_confidence_score)}
             </Badge>
           )}
           

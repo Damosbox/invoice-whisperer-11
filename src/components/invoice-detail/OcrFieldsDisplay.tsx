@@ -18,33 +18,36 @@ interface FieldRowProps {
 }
 
 function ConfidenceIndicator({ confidence }: { confidence: number }) {
-  if (confidence >= 0.9) {
+  // Normalize confidence to 0-100 if it's in 0-1 format
+  const normalizedConfidence = confidence > 1 ? confidence : confidence * 100;
+  
+  if (normalizedConfidence >= 90) {
     return (
       <Tooltip>
         <TooltipTrigger>
           <CheckCircle className="h-4 w-4 text-green-500" />
         </TooltipTrigger>
-        <TooltipContent>Confiance élevée ({Math.round(confidence * 100)}%)</TooltipContent>
+        <TooltipContent>Confiance élevée ({Math.round(normalizedConfidence)}%)</TooltipContent>
       </Tooltip>
     );
   }
-  if (confidence >= 0.7) {
+  if (normalizedConfidence >= 80) {
     return (
       <Tooltip>
         <TooltipTrigger>
           <AlertTriangle className="h-4 w-4 text-yellow-500" />
         </TooltipTrigger>
-        <TooltipContent>Confiance moyenne ({Math.round(confidence * 100)}%)</TooltipContent>
+        <TooltipContent>Confiance moyenne ({Math.round(normalizedConfidence)}%)</TooltipContent>
       </Tooltip>
     );
   }
-  if (confidence > 0) {
+  if (normalizedConfidence > 0) {
     return (
       <Tooltip>
         <TooltipTrigger>
           <XCircle className="h-4 w-4 text-red-500" />
         </TooltipTrigger>
-        <TooltipContent>Confiance faible ({Math.round(confidence * 100)}%)</TooltipContent>
+        <TooltipContent>Confiance faible ({Math.round(normalizedConfidence)}%)</TooltipContent>
       </Tooltip>
     );
   }

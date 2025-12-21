@@ -21,12 +21,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useCreateSupplier, useUpdateSupplier, SupplierFormData } from '@/hooks/useSuppliers';
 import { Tables } from '@/integrations/supabase/types';
 
+const COUNTRIES = [
+  { code: 'CI', name: 'Côte d\'Ivoire' },
+  { code: 'SN', name: 'Sénégal' },
+  { code: 'ML', name: 'Mali' },
+  { code: 'BF', name: 'Burkina Faso' },
+  { code: 'BJ', name: 'Bénin' },
+  { code: 'TG', name: 'Togo' },
+  { code: 'GN', name: 'Guinée' },
+  { code: 'NE', name: 'Niger' },
+  { code: 'CM', name: 'Cameroun' },
+  { code: 'GA', name: 'Gabon' },
+  { code: 'CG', name: 'Congo' },
+  { code: 'CD', name: 'RD Congo' },
+  { code: 'MA', name: 'Maroc' },
+  { code: 'TN', name: 'Tunisie' },
+  { code: 'DZ', name: 'Algérie' },
+  { code: 'FR', name: 'France' },
+  { code: 'OTHER', name: 'Autre' },
+];
+
 const supplierSchema = z.object({
   name: z.string().min(1, 'Le nom est requis').max(255),
-  identifier: z.string().max(50).optional().or(z.literal('')),
+  fiscal_identifier: z.string().max(50).optional().or(z.literal('')),
+  company_identifier: z.string().max(50).optional().or(z.literal('')),
+  country: z.string().default('CI'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(500).optional().or(z.literal('')),
@@ -54,7 +83,9 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
     resolver: zodResolver(supplierSchema),
     defaultValues: {
       name: supplier?.name || '',
-      identifier: supplier?.identifier || '',
+      fiscal_identifier: (supplier as any)?.fiscal_identifier || '',
+      company_identifier: (supplier as any)?.company_identifier || '',
+      country: (supplier as any)?.country || 'CI',
       email: supplier?.email || '',
       phone: supplier?.phone || '',
       address: supplier?.address || '',
@@ -69,7 +100,10 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
   const onSubmit = async (values: SupplierFormValues) => {
     const data: SupplierFormData = {
       name: values.name,
-      identifier: values.identifier || undefined,
+      identifier: values.fiscal_identifier || values.company_identifier || undefined,
+      fiscal_identifier: values.fiscal_identifier || undefined,
+      company_identifier: values.company_identifier || undefined,
+      country: values.country || 'CI',
       email: values.email || undefined,
       phone: values.phone || undefined,
       address: values.address || undefined,
@@ -118,12 +152,53 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
 
               <FormField
                 control={form.control}
-                name="identifier"
+                name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Identifiant (SIRET/TVA)</FormLabel>
+                    <FormLabel>Pays</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un pays" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="fiscal_identifier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identifiant Fiscal</FormLabel>
                     <FormControl>
-                      <Input placeholder="FR12345678901" {...field} />
+                      <Input placeholder="Numéro d'identification fiscale" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="company_identifier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identifiant Entreprise</FormLabel>
+                    <FormControl>
+                      <Input placeholder="RCCM / Registre commerce" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,7 +228,7 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
                   <FormItem>
                     <FormLabel>Téléphone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+33 1 23 45 67 89" {...field} />
+                      <Input placeholder="+225 07 XX XX XX XX" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -183,7 +258,7 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
                   <FormItem>
                     <FormLabel>IBAN</FormLabel>
                     <FormControl>
-                      <Input placeholder="FR76 1234 5678 9012 3456 7890 123" {...field} />
+                      <Input placeholder="CI93 XXXX XXXX XXXX XXXX XXXX XXX" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,7 +272,7 @@ export function SupplierForm({ open, onOpenChange, supplier }: SupplierFormProps
                   <FormItem>
                     <FormLabel>BIC</FormLabel>
                     <FormControl>
-                      <Input placeholder="BNPAFRPP" {...field} />
+                      <Input placeholder="BICICIAB" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

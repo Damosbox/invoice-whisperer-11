@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -21,7 +21,7 @@ interface ParseResult {
   errors: string[];
 }
 
-const CSV_HEADERS = ['name', 'identifier', 'email', 'phone', 'address', 'iban', 'bic', 'is_critical', 'payment_terms_days', 'notes'];
+const CSV_HEADERS = ['name', 'fiscal_identifier', 'company_identifier', 'country', 'email', 'phone', 'address', 'iban', 'bic', 'is_critical', 'payment_terms_days', 'notes'];
 
 function parseCSV(content: string): ParseResult {
   const lines = content.split(/\r?\n/).filter(line => line.trim());
@@ -39,7 +39,7 @@ function parseCSV(content: string): ParseResult {
 
   const headerMap: Record<string, number> = {};
   headers.forEach((h, i) => {
-    const normalized = h === 'nom' ? 'name' : h === 'identifiant' ? 'identifier' : h === 'telephone' ? 'phone' : h === 'adresse' ? 'address' : h === 'critique' ? 'is_critical' : h === 'delai_paiement' ? 'payment_terms_days' : h;
+    const normalized = h === 'nom' ? 'name' : h;
     if (CSV_HEADERS.includes(normalized)) {
       headerMap[normalized] = i;
     }
@@ -60,8 +60,14 @@ function parseCSV(content: string): ParseResult {
 
     const supplier: SupplierFormData = { name };
 
-    if (headerMap['identifier'] !== undefined) {
-      supplier.identifier = values[headerMap['identifier']] || undefined;
+    if (headerMap['fiscal_identifier'] !== undefined) {
+      supplier.fiscal_identifier = values[headerMap['fiscal_identifier']] || undefined;
+    }
+    if (headerMap['company_identifier'] !== undefined) {
+      supplier.company_identifier = values[headerMap['company_identifier']] || undefined;
+    }
+    if (headerMap['country'] !== undefined) {
+      supplier.country = values[headerMap['country']] || 'CI';
     }
     if (headerMap['email'] !== undefined) {
       const email = values[headerMap['email']];
@@ -116,6 +122,17 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
     setParseResult(result);
   }, []);
 
+  const handleDownloadTemplate = () => {
+    const template = 'name;fiscal_identifier;company_identifier;country;email;phone;address;iban;bic;is_critical;payment_terms_days;notes\nExemple SARL;CI123456789;RCCM-ABJ-2024-B-12345;CI;contact@exemple.ci;+225 07 00 00 00;Abidjan Cocody;CI93 0001 0001 0000 0000 0000 001;BICICIAB;false;30;Notes';
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_fournisseurs.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = async () => {
     if (!parseResult?.valid.length) return;
     await importSuppliers.mutateAsync(parseResult.valid);
@@ -141,21 +158,18 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
         </DialogHeader>
 
         <div className="space-y-4">
-          <Alert>
-            <FileText className="h-4 w-4" />
-            <AlertDescription>
-              Format attendu: CSV avec colonnes <code className="text-xs bg-muted px-1 rounded">name</code> (requis), 
-              <code className="text-xs bg-muted px-1 rounded">identifier</code>, 
-              <code className="text-xs bg-muted px-1 rounded">email</code>, 
-              <code className="text-xs bg-muted px-1 rounded">phone</code>, 
-              <code className="text-xs bg-muted px-1 rounded">address</code>, 
-              <code className="text-xs bg-muted px-1 rounded">iban</code>, 
-              <code className="text-xs bg-muted px-1 rounded">bic</code>, 
-              <code className="text-xs bg-muted px-1 rounded">is_critical</code>, 
-              <code className="text-xs bg-muted px-1 rounded">payment_terms_days</code>, 
-              <code className="text-xs bg-muted px-1 rounded">notes</code>
-            </AlertDescription>
-          </Alert>
+          <div className="flex items-center justify-between gap-2">
+            <Alert className="flex-1">
+              <FileText className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Colonnes: name (requis), fiscal_identifier, company_identifier, country, email, phone, iban...
+              </AlertDescription>
+            </Alert>
+            <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+              <Download className="h-4 w-4 mr-1" />
+              Template
+            </Button>
+          </div>
 
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
             <input

@@ -7,9 +7,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface PdfViewerProps {
   filePath: string;
+  hideActions?: boolean;
 }
 
-export function PdfViewer({ filePath }: PdfViewerProps) {
+export function PdfViewer({ filePath, hideActions = false }: PdfViewerProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,21 +69,23 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
   return (
     <div className="space-y-3">
-      {/* Action buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" size="sm" asChild>
-          <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Ouvrir
-          </a>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <a href={pdfUrl} download>
-            <Download className="h-4 w-4 mr-2" />
-            Télécharger
-          </a>
-        </Button>
-      </div>
+      {/* Action buttons - only show if not hidden */}
+      {!hideActions && (
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" size="sm" asChild>
+            <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Ouvrir
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href={pdfUrl} download>
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger
+            </a>
+          </Button>
+        </div>
+      )}
 
       {/* Blocked iframe fallback UI */}
       {iframeBlocked && (

@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 export interface SupplierFormData {
   name: string;
   identifier?: string;
+  fiscal_identifier?: string;
+  company_identifier?: string;
+  country?: string;
   email?: string;
   phone?: string;
   address?: string;
