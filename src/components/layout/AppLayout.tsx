@@ -10,7 +10,10 @@ import {
   AlertTriangle,
   ClipboardList,
   ShieldCheck,
-  UserCog
+  UserCog,
+  CheckCircle2,
+  ScanSearch,
+  Link2
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +27,12 @@ const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/invoices', icon: FileText, label: 'Factures' },
   { to: '/upload', icon: Upload, label: 'Import' },
+];
+
+const workflowNavItems = [
+  { to: '/ocr-validation', icon: ScanSearch, label: 'Validation OCR' },
+  { to: '/matching', icon: Link2, label: 'Rapprochement' },
+  { to: '/approval', icon: CheckCircle2, label: 'À approuver' },
 ];
 
 const referenceNavItems = [
@@ -90,6 +99,34 @@ export function AppLayout() {
                 key={item.to}
                 to={item.to}
                 end={item.to === '/'}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    isActive 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    collapsed && "justify-center px-2"
+                  )
+                }
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            ))}
+          </div>
+
+          <Separator />
+
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Workflow
+              </p>
+            )}
+            {workflowNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
