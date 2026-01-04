@@ -13,14 +13,20 @@ import Invoices from "./pages/Invoices";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import Upload from "./pages/Upload";
 import Suppliers from "./pages/Suppliers";
+import Supplier360 from "./pages/Supplier360";
+import SupplierRiskDashboard from "./pages/SupplierRiskDashboard";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import Exceptions from "./pages/Exceptions";
+import Disputes from "./pages/Disputes";
+import DisputeDetail from "./pages/DisputeDetail";
 import ApprovalRules from "./pages/ApprovalRules";
 import UserRoles from "./pages/UserRoles";
 import ApprovalQueue from "./pages/ApprovalQueue";
 import OcrValidationQueue from "./pages/OcrValidationQueue";
+import OcrQuality from "./pages/OcrQuality";
 import MatchingQueue from "./pages/MatchingQueue";
 import InvoiceMatching from "./pages/InvoiceMatching";
+import Delegations from "./pages/Delegations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,13 +54,19 @@ const App = () => (
                 <Route path="/invoices/:id/matching" element={<InvoiceMatching />} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/suppliers" element={<Suppliers />} />
+                <Route path="/suppliers/:id" element={<Supplier360 />} />
+                <Route path="/supplier-risk" element={<SupplierRiskDashboard />} />
                 <Route path="/purchase-orders" element={<PurchaseOrders />} />
                 <Route path="/exceptions" element={<Exceptions />} />
+                <Route path="/disputes" element={<Disputes />} />
+                <Route path="/disputes/:id" element={<DisputeDetail />} />
                 <Route path="/approval-rules" element={<ApprovalRules />} />
                 <Route path="/user-roles" element={<UserRoles />} />
                 <Route path="/approval" element={<ApprovalQueue />} />
                 <Route path="/ocr-validation" element={<OcrValidationQueue />} />
+                <Route path="/ocr-quality" element={<OcrQuality />} />
                 <Route path="/matching" element={<MatchingQueue />} />
+                <Route path="/delegations" element={<Delegations />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
