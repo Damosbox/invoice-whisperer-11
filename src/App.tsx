@@ -27,6 +27,7 @@ import OcrQuality from "./pages/OcrQuality";
 import MatchingQueue from "./pages/MatchingQueue";
 import InvoiceMatching from "./pages/InvoiceMatching";
 import Delegations from "./pages/Delegations";
+import BankReconciliation from "./pages/BankReconciliation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/ocr-quality" element={<OcrQuality />} />
                 <Route path="/matching" element={<MatchingQueue />} />
                 <Route path="/delegations" element={<Delegations />} />
+                <Route path="/bank-reconciliation" element={<BankReconciliation />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
