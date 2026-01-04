@@ -181,6 +181,142 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_statements: {
+        Row: {
+          bank_account: string | null
+          created_at: string
+          file_name: string
+          id: string
+          imported_by: string | null
+          period_end: string | null
+          period_start: string | null
+          source: string
+          status: string
+          total_credits: number | null
+          total_debits: number | null
+          transactions_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          bank_account?: string | null
+          created_at?: string
+          file_name: string
+          id?: string
+          imported_by?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          source?: string
+          status?: string
+          total_credits?: number | null
+          total_debits?: number | null
+          transactions_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bank_account?: string | null
+          created_at?: string
+          file_name?: string
+          id?: string
+          imported_by?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          source?: string
+          status?: string
+          total_credits?: number | null
+          total_debits?: number | null
+          transactions_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          bank_reference: string | null
+          counterparty_iban: string | null
+          counterparty_name: string | null
+          created_at: string
+          description: string | null
+          direction: string
+          id: string
+          match_confidence: number | null
+          match_method: string | null
+          matched_at: string | null
+          matched_by: string | null
+          matched_invoice_id: string | null
+          matched_payment_id: string | null
+          statement_id: string
+          status: string
+          transaction_date: string
+          updated_at: string
+          value_date: string | null
+        }
+        Insert: {
+          amount: number
+          bank_reference?: string | null
+          counterparty_iban?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          match_confidence?: number | null
+          match_method?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_invoice_id?: string | null
+          matched_payment_id?: string | null
+          statement_id: string
+          status?: string
+          transaction_date: string
+          updated_at?: string
+          value_date?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_reference?: string | null
+          counterparty_iban?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          match_confidence?: number | null
+          match_method?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_invoice_id?: string | null
+          matched_payment_id?: string | null
+          statement_id?: string
+          status?: string
+          transaction_date?: string
+          updated_at?: string
+          value_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_matched_invoice_id_fkey"
+            columns: ["matched_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_matched_payment_id_fkey"
+            columns: ["matched_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_notes: {
         Row: {
           bl_number: string

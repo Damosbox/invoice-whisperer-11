@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   BarChart3,
   UserCheck,
+  Landmark,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const workflowNavItems = [
   { to: '/matching', icon: Link2, label: 'Rapprochement' },
   { to: '/approval', icon: CheckCircle2, label: 'À approuver' },
   { to: '/delegations', icon: UserCheck, label: 'Délégations' },
+  { to: '/bank-reconciliation', icon: Landmark, label: 'Réconciliation bancaire' },
 ];
 
 const referenceNavItems = [
