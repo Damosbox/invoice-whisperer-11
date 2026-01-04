@@ -109,6 +109,42 @@ export type Database = {
         }
         Relationships: []
       }
+      approver_delegations: {
+        Row: {
+          created_at: string
+          delegate_id: string
+          delegator_id: string
+          end_date: string
+          id: string
+          is_active: boolean | null
+          reason: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delegate_id: string
+          delegator_id: string
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          reason?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delegate_id?: string
+          delegator_id?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          reason?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -188,7 +224,111 @@ export type Database = {
             foreignKeyName: "delivery_notes_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
+            referencedRelation: "ocr_quality_stats"
+            referencedColumns: ["supplier_id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispute_communications: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          dispute_id: string
+          email_template: string | null
+          id: string
+          recipients: string[] | null
+          type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          dispute_id: string
+          email_template?: string | null
+          id?: string
+          recipients?: string[] | null
+          type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          dispute_id?: string
+          email_template?: string | null
+          id?: string
+          recipients?: string[] | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_communications_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          invoice_id: string
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          invoice_id: string
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -405,6 +545,13 @@ export type Database = {
             foreignKeyName: "invoices_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
+            referencedRelation: "ocr_quality_stats"
+            referencedColumns: ["supplier_id"]
+          },
+          {
+            foreignKeyName: "invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
@@ -538,6 +685,13 @@ export type Database = {
             foreignKeyName: "purchase_orders_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
+            referencedRelation: "ocr_quality_stats"
+            referencedColumns: ["supplier_id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
@@ -579,6 +733,13 @@ export type Database = {
             foreignKeyName: "supplier_templates_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
+            referencedRelation: "ocr_quality_stats"
+            referencedColumns: ["supplier_id"]
+          },
+          {
+            foreignKeyName: "supplier_templates_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
@@ -587,56 +748,77 @@ export type Database = {
       suppliers: {
         Row: {
           address: string | null
+          avg_payment_delay_days: number | null
           bic: string | null
           company_identifier: string | null
           country: string | null
           created_at: string
+          disputed_invoices_count: number | null
           email: string | null
           fiscal_identifier: string | null
           iban: string | null
           id: string
           identifier: string | null
           is_critical: boolean | null
+          last_invoice_date: string | null
+          late_payments_count: number | null
           name: string
           notes: string | null
           payment_terms_days: number | null
           phone: string | null
+          quality_rating: number | null
+          risk_score: number | null
+          total_invoices_count: number | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          avg_payment_delay_days?: number | null
           bic?: string | null
           company_identifier?: string | null
           country?: string | null
           created_at?: string
+          disputed_invoices_count?: number | null
           email?: string | null
           fiscal_identifier?: string | null
           iban?: string | null
           id?: string
           identifier?: string | null
           is_critical?: boolean | null
+          last_invoice_date?: string | null
+          late_payments_count?: number | null
           name: string
           notes?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          quality_rating?: number | null
+          risk_score?: number | null
+          total_invoices_count?: number | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          avg_payment_delay_days?: number | null
           bic?: string | null
           company_identifier?: string | null
           country?: string | null
           created_at?: string
+          disputed_invoices_count?: number | null
           email?: string | null
           fiscal_identifier?: string | null
           iban?: string | null
           id?: string
           identifier?: string | null
           is_critical?: boolean | null
+          last_invoice_date?: string | null
+          late_payments_count?: number | null
           name?: string
           notes?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          quality_rating?: number | null
+          risk_score?: number | null
+          total_invoices_count?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -664,7 +846,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ocr_quality_stats: {
+        Row: {
+          avg_confidence: number | null
+          last_invoice_date: string | null
+          low_confidence_count: number | null
+          pending_validation_count: number | null
+          supplier_id: string | null
+          supplier_name: string | null
+          template_corrections_count: number | null
+          total_invoices: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_any_role: {
