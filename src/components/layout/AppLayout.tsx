@@ -13,7 +13,11 @@ import {
   UserCog,
   CheckCircle2,
   ScanSearch,
-  Link2
+  Link2,
+  Scale,
+  ShieldAlert,
+  BarChart3,
+  UserCheck,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -33,17 +37,21 @@ const workflowNavItems = [
   { to: '/ocr-validation', icon: ScanSearch, label: 'Validation OCR' },
   { to: '/matching', icon: Link2, label: 'Rapprochement' },
   { to: '/approval', icon: CheckCircle2, label: 'À approuver' },
+  { to: '/delegations', icon: UserCheck, label: 'Délégations' },
 ];
 
 const referenceNavItems = [
   { to: '/suppliers', icon: Users, label: 'Fournisseurs' },
+  { to: '/supplier-risk', icon: ShieldAlert, label: 'Score risque' },
   { to: '/purchase-orders', icon: ClipboardList, label: 'Bons de commande' },
   { to: '/exceptions', icon: AlertTriangle, label: 'Exceptions' },
+  { to: '/disputes', icon: Scale, label: 'Litiges' },
 ];
 
 const adminNavItems = [
   { to: '/approval-rules', icon: ShieldCheck, label: 'Règles d\'approbation' },
   { to: '/user-roles', icon: UserCog, label: 'Gestion des rôles' },
+  { to: '/ocr-quality', icon: BarChart3, label: 'Qualité OCR' },
 ];
 
 export function AppLayout() {
