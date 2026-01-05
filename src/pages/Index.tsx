@@ -20,6 +20,7 @@ import { StatusDistributionChart } from '@/components/dashboard/StatusDistributi
 import { InvoiceTrendChart } from '@/components/dashboard/InvoiceTrendChart';
 import { TopSuppliersChart } from '@/components/dashboard/TopSuppliersChart';
 import { OverdueTable } from '@/components/dashboard/OverdueTable';
+import { CopilotWidget } from '@/components/dashboard/CopilotWidget';
 
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M€`;
@@ -184,6 +185,9 @@ export default function Index() {
           ))}
         </div>
       </div>
+      
+      {/* Copilot Widget */}
+      <CopilotWidget />
     </div>
   );
 }

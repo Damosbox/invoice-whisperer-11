@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   BarChart3,
   UserCheck,
+  Sparkles,
   Landmark,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -32,6 +33,7 @@ const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/invoices', icon: FileText, label: 'Factures' },
   { to: '/upload', icon: Upload, label: 'Import' },
+  { to: '/copilot', icon: Sparkles, label: 'IA Copilot' },
 ];
 
 const workflowNavItems = [
