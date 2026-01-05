@@ -5,3 +5,9 @@ verify_jwt = true
 
 [functions.match-invoice]
 verify_jwt = true
+
+[functions.explain-anomaly]
+verify_jwt = true
+
+[functions.ai-pilotage]
+verify_jwt = true

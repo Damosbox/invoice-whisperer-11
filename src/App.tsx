@@ -28,6 +28,7 @@ import MatchingQueue from "./pages/MatchingQueue";
 import InvoiceMatching from "./pages/InvoiceMatching";
 import Delegations from "./pages/Delegations";
 import BankReconciliation from "./pages/BankReconciliation";
+import Copilot from "./pages/Copilot";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/matching" element={<MatchingQueue />} />
                 <Route path="/delegations" element={<Delegations />} />
                 <Route path="/bank-reconciliation" element={<BankReconciliation />} />
+                <Route path="/copilot" element={<Copilot />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
