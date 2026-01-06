@@ -79,7 +79,7 @@ export default function Index() {
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Bienvenue sur SUTA Finance - Plateforme de gestion des factures fournisseurs
+            Bienvenue sur FacturaPro - Plateforme de gestion des factures fournisseurs
           </p>
         </div>
         <Button 

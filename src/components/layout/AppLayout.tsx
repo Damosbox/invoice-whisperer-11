@@ -87,7 +87,7 @@ export function AppLayout() {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
             <FileText className="h-4 w-4 text-primary-foreground" />
           </div>
-          {!collapsed && <span className="font-semibold">SUTA Finance</span>}
+          {!collapsed && <span className="font-semibold">FacturaPro</span>}
         </div>
 
         {/* User info */}

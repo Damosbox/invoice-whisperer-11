@@ -7,7 +7,7 @@ export default function Copilot() {
   return (
     <>
       <Helmet>
-        <title>IA Copilot - SUTA Finance</title>
+        <title>IA Copilot - FacturaPro</title>
       </Helmet>
       
       <div className="container mx-auto py-6 h-[calc(100vh-4rem)]">

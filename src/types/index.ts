@@ -1,5 +1,5 @@
 // ============================================
-// SUTA Finance - Types principaux
+// FacturaPro - Types principaux
 // ============================================
 
 export type AppRole = 'admin' | 'daf' | 'dg' | 'comptable' | 'auditeur';
