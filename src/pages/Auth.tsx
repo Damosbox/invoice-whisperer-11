@@ -38,7 +38,7 @@ export default function Auth() {
     if (error) {
       toast({ title: "Erreur d'inscription", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Inscription réussie", description: "Bienvenue sur SUTA Finance" });
+      toast({ title: "Inscription réussie", description: "Bienvenue sur FacturaPro" });
       navigate("/");
     }
   };
@@ -50,7 +50,7 @@ export default function Auth() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
             <FileText className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">SUTA Finance</CardTitle>
+          <CardTitle className="text-2xl">FacturaPro</CardTitle>
           <CardDescription>Plateforme IA de traitement des factures</CardDescription>
         </CardHeader>
         <CardContent>

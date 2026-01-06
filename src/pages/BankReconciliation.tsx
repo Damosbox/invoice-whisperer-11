@@ -30,7 +30,7 @@ export default function BankReconciliation() {
   return (
     <>
       <Helmet>
-        <title>Réconciliation Bancaire | SUTA Finance</title>
+        <title>Réconciliation Bancaire | FacturaPro</title>
       </Helmet>
 
       <div className="p-6 space-y-6">

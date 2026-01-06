@@ -31,7 +31,7 @@ export default function ApprovalRules() {
   return (
     <>
       <Helmet>
-        <title>Règles d'approbation | SUTA Finance</title>
+        <title>Règles d'approbation | FacturaPro</title>
         <meta name="description" content="Configuration des règles d'approbation multi-niveaux pour les factures" />
       </Helmet>
 

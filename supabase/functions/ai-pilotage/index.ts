@@ -113,7 +113,7 @@ serve(async (req) => {
 
     // Build context for AI
     const businessContext = `
-Tu es l'assistant IA de SUTA Finance, un expert en comptabilité fournisseurs et gestion des factures.
+Tu es l'assistant IA de FacturaPro, un expert en comptabilité fournisseurs et gestion des factures.
 
 ## État actuel du système (données temps réel):
 
