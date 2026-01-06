@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
-import { CopilotChat } from '@/components/copilot/CopilotChat';
 import { CopilotContextCard } from '@/components/copilot/CopilotContextCard';
 import { Card } from '@/components/ui/card';
+import { CopilotChatFull } from '@/components/copilot/CopilotChatFull';
 
 export default function Copilot() {
   return (
@@ -14,7 +14,7 @@ export default function Copilot() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
           {/* Chat principal */}
           <Card className="lg:col-span-3 flex flex-col overflow-hidden">
-            <CopilotChat />
+            <CopilotChatFull />
           </Card>
           
           {/* Sidebar contexte */}

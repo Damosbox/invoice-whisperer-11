@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SuggestedQuestionsProps {
   onSelectQuestion: (question: string) => void;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -17,20 +19,25 @@ const SUGGESTED_QUESTIONS = [
   "Résume-moi la situation financière actuelle",
 ];
 
-export function SuggestedQuestions({ onSelectQuestion, disabled }: SuggestedQuestionsProps) {
+export function SuggestedQuestions({ onSelectQuestion, disabled, compact }: SuggestedQuestionsProps) {
+  const displayedQuestions = compact ? SUGGESTED_QUESTIONS.slice(0, 4) : SUGGESTED_QUESTIONS;
+  
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <HelpCircle className="h-4 w-4" />
         Questions suggérées
       </div>
-      <div className="flex flex-wrap gap-2">
-        {SUGGESTED_QUESTIONS.map((question, index) => (
+      <div className={cn("flex flex-wrap gap-2", compact && "flex-col")}>
+        {displayedQuestions.map((question, index) => (
           <Button
             key={index}
             variant="outline"
             size="sm"
-            className="text-xs h-auto py-2 px-3 whitespace-normal text-left"
+            className={cn(
+              "text-xs h-auto py-2 px-3 whitespace-normal text-left",
+              compact && "justify-start"
+            )}
             onClick={() => onSelectQuestion(question)}
             disabled={disabled}
           >

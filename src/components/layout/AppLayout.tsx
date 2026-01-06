@@ -28,6 +28,9 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRoleBadge } from './UserRoleBadge';
 import { toast } from 'sonner';
+import { CopilotProvider } from '@/contexts/CopilotContext';
+import { CopilotPanel } from '@/components/copilot/CopilotPanel';
+import { CopilotFAB } from '@/components/copilot/CopilotFAB';
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -70,14 +73,15 @@ export function AppLayout() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Sidebar */}
-      <aside 
-        className={cn(
-          "flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0",
-          collapsed ? "w-16" : "w-56"
-        )}
-      >
+    <CopilotProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        {/* Sidebar */}
+        <aside 
+          className={cn(
+            "flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0",
+            collapsed ? "w-16" : "w-56"
+          )}
+        >
         {/* Logo */}
         <div className="flex items-center gap-2 p-4 border-b border-border h-14">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
@@ -244,10 +248,15 @@ export function AppLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <Outlet />
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <Outlet />
+        </main>
+
+        {/* Copilot Panel & FAB */}
+        <CopilotPanel />
+        <CopilotFAB />
+      </div>
+    </CopilotProvider>
   );
 }
