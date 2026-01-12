@@ -20,6 +20,7 @@ import {
   UserCheck,
   Sparkles,
   Landmark,
+  FlaskConical,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ const adminNavItems = [
   { to: '/approval-rules', icon: ShieldCheck, label: 'Règles d\'approbation' },
   { to: '/user-roles', icon: UserCog, label: 'Gestion des rôles' },
   { to: '/ocr-quality', icon: BarChart3, label: 'Qualité OCR' },
+  { to: '/admin/seed-accounts', icon: FlaskConical, label: 'Comptes de test' },
 ];
 
 export function AppLayout() {

@@ -29,6 +29,7 @@ import InvoiceMatching from "./pages/InvoiceMatching";
 import Delegations from "./pages/Delegations";
 import BankReconciliation from "./pages/BankReconciliation";
 import Copilot from "./pages/Copilot";
+import SeedTestAccounts from "./pages/SeedTestAccounts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
                 <Route path="/delegations" element={<Delegations />} />
                 <Route path="/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="/copilot" element={<Copilot />} />
+                <Route path="/admin/seed-accounts" element={<SeedTestAccounts />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
