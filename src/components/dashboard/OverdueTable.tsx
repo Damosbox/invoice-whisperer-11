@@ -40,13 +40,24 @@ export function OverdueTable({ invoices }: OverdueTableProps) {
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Clock className="h-4 w-4 text-status-exception" />
-          Factures en retard
-          <Badge variant="destructive" className="ml-auto">
-            {invoices.length}
-          </Badge>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4 text-status-exception" />
+            Factures en retard
+            <Badge variant="destructive">
+              {invoices.length}
+            </Badge>
+          </CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs"
+            onClick={() => navigate('/invoices?filter=overdue')}
+          >
+            Voir tout
+            <ExternalLink className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
