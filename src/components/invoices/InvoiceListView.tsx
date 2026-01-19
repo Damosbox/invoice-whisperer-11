@@ -65,17 +65,19 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
             <TableHead className="w-[50px]"></TableHead>
             <TableHead>N° Facture</TableHead>
             <TableHead>Fournisseur</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead>Date émission</TableHead>
+            <TableHead>Échéance</TableHead>
             <TableHead className="text-right">Montant TTC</TableHead>
             <TableHead className="text-center">OCR</TableHead>
             <TableHead>Statut</TableHead>
+            <TableHead>Approbation</TableHead>
             <TableHead className="text-center">Match</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {invoices.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                 Aucune facture
               </TableCell>
             </TableRow>
@@ -105,6 +107,18 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
                     </div>
                   </TableCell>
                   <TableCell>{formatDate(invoice.issue_date)}</TableCell>
+                  <TableCell>
+                    {invoice.due_date ? (
+                      <span className={cn(
+                        new Date(invoice.due_date) < new Date() && 
+                        !['comptabilisee', 'prete_comptabilisation'].includes(invoice.status) 
+                          ? 'text-destructive font-medium' 
+                          : ''
+                      )}>
+                        {formatDate(invoice.due_date)}
+                      </span>
+                    ) : '—'}
+                  </TableCell>
                   <TableCell className="text-right font-medium">
                     {formatAmount(invoice.amount_ttc, invoice.currency)}
                   </TableCell>
@@ -115,6 +129,17 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {invoice.approved_at ? (
+                      <span className="text-xs text-green-600">
+                        {formatDate(invoice.approved_at)}
+                      </span>
+                    ) : invoice.status === 'a_approuver' ? (
+                      <span className="text-xs text-muted-foreground">En attente</span>
+                    ) : (
+                      '—'
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     {invoice.match_status === 'match_automatique' && (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Invoice } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,23 @@ export function InvoiceEditForm({ invoice, onSave, isSaving }: InvoiceEditFormPr
     bl_number_extracted: invoice.bl_number_extracted || '',
     iban_extracted: invoice.iban_extracted || '',
   });
+
+  // INV-06: Reset form when invoice changes
+  useEffect(() => {
+    setFormData({
+      invoice_number: invoice.invoice_number || '',
+      supplier_name_extracted: invoice.supplier_name_extracted || '',
+      issue_date: invoice.issue_date || '',
+      due_date: invoice.due_date || '',
+      amount_ht: invoice.amount_ht?.toString() || '',
+      amount_tva: invoice.amount_tva?.toString() || '',
+      amount_ttc: invoice.amount_ttc?.toString() || '',
+      currency: invoice.currency || 'EUR',
+      po_number_extracted: invoice.po_number_extracted || '',
+      bl_number_extracted: invoice.bl_number_extracted || '',
+      iban_extracted: invoice.iban_extracted || '',
+    });
+  }, [invoice]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

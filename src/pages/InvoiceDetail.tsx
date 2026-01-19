@@ -264,7 +264,17 @@ export default function InvoiceDetail() {
 
           <WorkflowActions 
             invoice={invoice}
-            onStatusChange={(newStatus) => updateMutation.mutate({ status: newStatus })}
+            onStatusChange={(newStatus, rejectionReason) => {
+              const updates: Record<string, unknown> = { status: newStatus };
+              // INV-09 & INV-10: Save approval date or rejection reason
+              if (newStatus === 'prete_comptabilisation') {
+                updates.approved_at = new Date().toISOString();
+              }
+              if (rejectionReason) {
+                updates.rejection_reason = rejectionReason;
+              }
+              updateMutation.mutate(updates);
+            }}
             isUpdating={updateMutation.isPending}
           />
         </div>

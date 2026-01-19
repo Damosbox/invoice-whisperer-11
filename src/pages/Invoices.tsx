@@ -7,24 +7,51 @@ import { AccountingExportDialog } from '@/components/export/AccountingExportDial
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Upload, RefreshCw, Download, LayoutGrid, List, X, Clock } from 'lucide-react';
-import { Invoice } from '@/types';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { FileText, Upload, RefreshCw, Download, LayoutGrid, List, X, Clock, Search } from 'lucide-react';
+import { Invoice, InvoiceStatus } from '@/types';
+
+const STATUS_OPTIONS: { value: InvoiceStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'Tous les statuts' },
+  { value: 'nouvelle', label: 'Nouvelle' },
+  { value: 'a_valider_extraction', label: 'À valider (OCR)' },
+  { value: 'a_rapprocher', label: 'À rapprocher' },
+  { value: 'a_approuver', label: 'À approuver' },
+  { value: 'exception', label: 'Exception' },
+  { value: 'litige', label: 'Litige' },
+  { value: 'prete_comptabilisation', label: 'Prête compta' },
+  { value: 'comptabilisee', label: 'Comptabilisée' },
+];
 
 export default function Invoices() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilter = searchParams.get('filter');
+  const statusFilter = searchParams.get('status') as InvoiceStatus | null;
   const { data: invoices, isLoading, error, refetch } = useInvoices();
   const [exportOpen, setExportOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Filtrer les factures si le filtre "overdue" est actif
+  // Filter invoices based on active filters and search
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];
+    
+    let result = invoices;
+    
+    // Overdue filter
     if (activeFilter === 'overdue') {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return invoices.filter(inv => {
+      result = result.filter(inv => {
         if (!inv.due_date) return false;
         const dueDate = new Date(inv.due_date);
         const isOverdue = dueDate < today;
@@ -32,13 +59,41 @@ export default function Invoices() {
         return isOverdue && isPending;
       });
     }
-    return invoices;
-  }, [invoices, activeFilter]);
+    
+    // Status filter
+    if (statusFilter) {
+      result = result.filter(inv => inv.status === statusFilter);
+    }
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(inv => 
+        inv.invoice_number?.toLowerCase().includes(query) ||
+        inv.supplier_name_extracted?.toLowerCase().includes(query) ||
+        inv.supplier?.name?.toLowerCase().includes(query) ||
+        inv.po_number_extracted?.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [invoices, activeFilter, statusFilter, searchQuery]);
 
   const clearFilter = () => {
-    setSearchParams({});
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('filter');
+    setSearchParams(newParams);
   };
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+
+  const handleStatusFilterChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value === 'all') {
+      newParams.delete('status');
+    } else {
+      newParams.set('status', value);
+    }
+    setSearchParams(newParams);
+  };
 
   const handleInvoiceClick = (invoice: Invoice) => {
     navigate(`/invoices/${invoice.id}`);
@@ -86,14 +141,6 @@ export default function Invoices() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'kanban' | 'list')}>
-              <ToggleGroupItem value="kanban" aria-label="Vue Kanban">
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="list" aria-label="Vue Liste">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
               <Download className="h-4 w-4 mr-2" />
               Export compta
@@ -107,6 +154,48 @@ export default function Invoices() {
               Importer
             </Button>
           </div>
+        </div>
+
+        {/* Filters row */}
+        <div className="flex items-center gap-3 px-4 pb-4">
+          {/* View mode tabs */}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'kanban' | 'list')}>
+            <TabsList>
+              <TabsTrigger value="kanban" className="gap-2">
+                <LayoutGrid className="h-4 w-4" />
+                Kanban
+              </TabsTrigger>
+              <TabsTrigger value="list" className="gap-2">
+                <List className="h-4 w-4" />
+                Liste
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* Search input */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+
+          {/* Status filter */}
+          <Select value={statusFilter || 'all'} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="Filtrer par statut" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </header>
 

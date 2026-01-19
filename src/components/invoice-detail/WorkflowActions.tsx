@@ -24,7 +24,7 @@ import {
 
 interface WorkflowActionsProps {
   invoice: Invoice;
-  onStatusChange: (newStatus: InvoiceStatus) => void;
+  onStatusChange: (newStatus: InvoiceStatus, rejectionReason?: string) => void;
   isUpdating: boolean;
 }
 
@@ -60,6 +60,14 @@ const transitions: WorkflowTransition[] = [
     variant: 'default',
   },
   {
+    from: ['a_approuver'],
+    to: 'exception',
+    label: 'Rejeter',
+    icon: <XCircle className="h-4 w-4" />,
+    variant: 'destructive',
+    requiresReason: true,
+  },
+  {
     from: ['prete_comptabilisation'],
     to: 'comptabilisee',
     label: 'Marquer comptabilisée',
@@ -67,7 +75,7 @@ const transitions: WorkflowTransition[] = [
     variant: 'default',
   },
   {
-    from: ['a_valider_extraction', 'a_rapprocher', 'a_approuver'],
+    from: ['a_valider_extraction', 'a_rapprocher'],
     to: 'exception',
     label: 'Signaler exception',
     icon: <AlertTriangle className="h-4 w-4" />,
@@ -111,8 +119,8 @@ export function WorkflowActions({ invoice, onStatusChange, isUpdating }: Workflo
 
   const confirmTransition = () => {
     if (pendingTransition) {
-      onStatusChange(pendingTransition.to);
-      // TODO: Save rejection_reason separately if needed
+      // INV-10: Pass rejection reason to parent for saving
+      onStatusChange(pendingTransition.to, reason.trim() || undefined);
       setShowReasonDialog(false);
       setPendingTransition(null);
       setReason('');
