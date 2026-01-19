@@ -1,19 +1,43 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useInvoices } from '@/hooks/useInvoices';
 import { InvoiceKanban } from '@/components/invoices/InvoiceKanban';
 import { InvoiceListView } from '@/components/invoices/InvoiceListView';
 import { AccountingExportDialog } from '@/components/export/AccountingExportDialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Upload, RefreshCw, Download, LayoutGrid, List } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Upload, RefreshCw, Download, LayoutGrid, List, X, Clock } from 'lucide-react';
 import { Invoice } from '@/types';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export default function Invoices() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeFilter = searchParams.get('filter');
   const { data: invoices, isLoading, error, refetch } = useInvoices();
   const [exportOpen, setExportOpen] = useState(false);
+
+  // Filtrer les factures si le filtre "overdue" est actif
+  const filteredInvoices = useMemo(() => {
+    if (!invoices) return [];
+    if (activeFilter === 'overdue') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return invoices.filter(inv => {
+        if (!inv.due_date) return false;
+        const dueDate = new Date(inv.due_date);
+        const isOverdue = dueDate < today;
+        const isPending = !['comptabilisee', 'prete_comptabilisation'].includes(inv.status || '');
+        return isOverdue && isPending;
+      });
+    }
+    return invoices;
+  }, [invoices, activeFilter]);
+
+  const clearFilter = () => {
+    setSearchParams({});
+  };
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
 
   const handleInvoiceClick = (invoice: Invoice) => {
@@ -39,11 +63,26 @@ export default function Invoices() {
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <FileText className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-semibold">Factures</h1>
-              <p className="text-sm text-muted-foreground">
-                {isLoading ? 'Chargement...' : `${invoices?.length || 0} factures`}
-              </p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-xl font-semibold">Factures</h1>
+                <p className="text-sm text-muted-foreground">
+                  {isLoading ? 'Chargement...' : `${filteredInvoices.length} facture${filteredInvoices.length > 1 ? 's' : ''}`}
+                </p>
+              </div>
+              {activeFilter === 'overdue' && (
+                <Badge variant="destructive" className="flex items-center gap-1.5 h-7 px-3">
+                  <Clock className="h-3.5 w-3.5" />
+                  Factures en retard
+                  <button 
+                    onClick={clearFilter}
+                    className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                    aria-label="Supprimer le filtre"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -84,13 +123,13 @@ export default function Invoices() {
         </div>
       ) : viewMode === 'kanban' ? (
         <InvoiceKanban 
-          invoices={invoices || []} 
+          invoices={filteredInvoices} 
           onInvoiceClick={handleInvoiceClick}
         />
       ) : (
         <div className="p-4">
           <InvoiceListView 
-            invoices={invoices || []} 
+            invoices={filteredInvoices} 
             onInvoiceClick={handleInvoiceClick}
           />
         </div>
