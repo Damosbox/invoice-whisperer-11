@@ -65,6 +65,7 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
             <TableHead className="w-[50px]"></TableHead>
             <TableHead>N° Facture</TableHead>
             <TableHead>Fournisseur</TableHead>
+            <TableHead>Date ajout</TableHead>
             <TableHead>Date émission</TableHead>
             <TableHead>Échéance</TableHead>
             <TableHead className="text-right">Montant TTC</TableHead>
@@ -77,7 +78,7 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
         <TableBody>
           {invoices.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                 Aucune facture
               </TableCell>
             </TableRow>
@@ -105,6 +106,9 @@ export function InvoiceListView({ invoices, onInvoiceClick }: InvoiceListViewPro
                         </Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {formatDate(invoice.created_at)}
                   </TableCell>
                   <TableCell>{formatDate(invoice.issue_date)}</TableCell>
                   <TableCell>

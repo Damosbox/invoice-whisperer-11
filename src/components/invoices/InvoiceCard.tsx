@@ -53,6 +53,11 @@ export function InvoiceCard({ invoice, onClick, isDragging }: InvoiceCardProps) 
     ? format(new Date(invoice.issue_date), 'dd MMM yyyy', { locale: fr })
     : '—';
 
+  // UP-03: Format created_at date for display
+  const formattedCreatedAt = invoice.created_at 
+    ? format(new Date(invoice.created_at), 'dd/MM/yy', { locale: fr })
+    : null;
+
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('invoiceId', invoice.id);
     e.dataTransfer.setData('currentStatus', invoice.status);
@@ -91,6 +96,13 @@ export function InvoiceCard({ invoice, onClick, isDragging }: InvoiceCardProps) 
           </span>
           <span>{formattedDate}</span>
         </div>
+
+        {/* UP-03: Show created_at date */}
+        {formattedCreatedAt && (
+          <div className="text-[10px] text-muted-foreground/70">
+            Ajouté le {formattedCreatedAt}
+          </div>
+        )}
 
         {/* Footer: Confidence & Match Status */}
         <div className="flex items-center justify-between pt-1">

@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { uploadProvider } from '@/services/ingestion';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import type { FileUploadItem, UploadStatus } from '@/components/upload/types';
 
 // Simple ID generator
@@ -12,18 +14,39 @@ export function useFileUpload() {
   const [files, setFiles] = useState<FileUploadItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const updateFile = useCallback((id: string, updates: Partial<FileUploadItem>) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
   }, []);
 
+  // UP-04: Validate files immediately on add
   const addFiles = useCallback((newFiles: File[]) => {
-    const items: FileUploadItem[] = newFiles.map(file => ({
-      id: generateId(),
-      file,
-      status: 'pending' as UploadStatus,
-      progress: 0,
-    }));
+    const items: FileUploadItem[] = newFiles.map(file => {
+      const validation = uploadProvider.validateFile(file);
+      if (!validation.valid) {
+        return {
+          id: generateId(),
+          file,
+          status: 'error' as UploadStatus,
+          progress: 0,
+          error: validation.error,
+        };
+      }
+      return {
+        id: generateId(),
+        file,
+        status: 'pending' as UploadStatus,
+        progress: 0,
+      };
+    });
+    
+    // Notify user of rejected files
+    const rejected = items.filter(i => i.status === 'error');
+    if (rejected.length > 0) {
+      toast.error(`${rejected.length} fichier(s) refusé(s) : format non supporté`);
+    }
+    
     setFiles(prev => [...prev, ...items]);
     return items;
   }, []);
@@ -66,6 +89,8 @@ export function useFileUpload() {
         progress: 100, 
         invoiceId: result.invoiceId 
       });
+      // UP-03: Invalidate invoices cache so Kanban refreshes
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
     } else if (result.isDuplicate) {
       updateFile(item.id, { 
         status: 'duplicate', 
@@ -80,7 +105,7 @@ export function useFileUpload() {
         error: result.error 
       });
     }
-  }, [user, updateFile]);
+  }, [user, updateFile, queryClient]);
 
   const uploadAll = useCallback(async () => {
     const pendingFiles = files.filter(f => f.status === 'pending');
