@@ -27,11 +27,21 @@ export default function Upload() {
     toast.info(`${newFiles.length} fichier(s) ajouté(s)`);
   };
 
+  // UP-05: Calculate final stats after upload completes
   const handleUpload = async () => {
+    const pendingCount = stats.pending;
     await uploadAll();
-    if (stats.success > 0) {
-      toast.success(`${stats.success} facture(s) importée(s) avec succès`);
-    }
+    // Use a small delay to ensure state is updated
+    setTimeout(() => {
+      const successCount = files.filter(f => f.status === 'success').length;
+      if (successCount > 0) {
+        toast.success(`${successCount} facture(s) importée(s) avec succès`);
+      }
+      const errorCount = files.filter(f => f.status === 'error').length;
+      if (errorCount > 0 && pendingCount > 0) {
+        toast.error(`${errorCount} fichier(s) en erreur`);
+      }
+    }, 100);
   };
 
   return (
