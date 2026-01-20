@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { 
@@ -51,6 +52,7 @@ export function ApprovalWorkflowPanel({
   currentLevel = 0,
   requiredLevels = 1,
 }: ApprovalWorkflowPanelProps) {
+  const navigate = useNavigate();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [approveComment, setApproveComment] = useState('');
@@ -83,8 +85,15 @@ export function ApprovalWorkflowPanel({
         invoiceId,
         level: pendingLevel.level,
         comment: approveComment || undefined,
+      }, {
+        onSuccess: () => {
+          setApproveComment('');
+          // Redirect to approval queue after a short delay
+          setTimeout(() => {
+            navigate('/approval');
+          }, 1500);
+        }
       });
-      setApproveComment('');
     }
   };
 
@@ -94,9 +103,16 @@ export function ApprovalWorkflowPanel({
         invoiceId,
         level: pendingLevel.level,
         reason: rejectReason,
+      }, {
+        onSuccess: () => {
+          setRejectDialogOpen(false);
+          setRejectReason('');
+          // Redirect to approval queue after a short delay
+          setTimeout(() => {
+            navigate('/approval');
+          }, 1500);
+        }
       });
-      setRejectDialogOpen(false);
-      setRejectReason('');
     }
   };
 

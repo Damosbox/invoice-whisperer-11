@@ -114,7 +114,7 @@ export default function OcrValidationQueue() {
                     <TableRow 
                       key={invoice.id} 
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/invoices/${invoice.id}`)}
+                      onClick={() => navigate(`/invoices/${invoice.id}?source=ocr-validation`)}
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">

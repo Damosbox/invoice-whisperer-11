@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice, OcrFields, OcrField } from '@/types';
@@ -45,11 +45,30 @@ function formatOcrScore(score: number | null): string {
 export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const source = searchParams.get('source');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [highlightedField, setHighlightedField] = useState<OcrField | null>(null);
+
+  // Smart back navigation based on source
+  const handleBack = () => {
+    switch (source) {
+      case 'approval':
+        navigate('/approval');
+        break;
+      case 'ocr-validation':
+        navigate('/ocr-validation');
+        break;
+      case 'matching':
+        navigate('/matching');
+        break;
+      default:
+        navigate('/invoices');
+    }
+  };
 
   const { data: invoice, isLoading, error } = useQuery({
     queryKey: ['invoice', id],
@@ -148,7 +167,7 @@ export default function InvoiceDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}>
+          <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3 flex-wrap">

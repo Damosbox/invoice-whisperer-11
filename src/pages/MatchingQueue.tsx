@@ -127,7 +127,7 @@ export default function MatchingQueue() {
                           <TableRow 
                             key={invoice.id} 
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => navigate(`/invoices/${invoice.id}/matching`)}
+                            onClick={() => navigate(`/invoices/${invoice.id}/matching?source=matching`)}
                           >
                             <TableCell>
                               <div className="flex items-center gap-2">
