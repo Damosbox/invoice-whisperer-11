@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,6 +52,19 @@ interface PurchaseOrderFormProps {
   isLoading?: boolean;
 }
 
+const getDefaultValues = (purchaseOrder?: PurchaseOrderWithSupplier | null): PurchaseOrderFormValues => ({
+  po_number: purchaseOrder?.po_number || '',
+  supplier_id: purchaseOrder?.supplier_id || null,
+  amount_ht: purchaseOrder?.amount_ht || 0,
+  amount_tva: purchaseOrder?.amount_tva || 0,
+  amount_ttc: purchaseOrder?.amount_ttc || 0,
+  currency: purchaseOrder?.currency || 'EUR',
+  description: purchaseOrder?.description || '',
+  status: purchaseOrder?.status || 'actif',
+  order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
+  expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
+});
+
 export function PurchaseOrderForm({
   open,
   onOpenChange,
@@ -62,23 +76,18 @@ export function PurchaseOrderForm({
   
   const form = useForm<PurchaseOrderFormValues>({
     resolver: zodResolver(purchaseOrderSchema),
-    defaultValues: {
-      po_number: purchaseOrder?.po_number || '',
-      supplier_id: purchaseOrder?.supplier_id || null,
-      amount_ht: purchaseOrder?.amount_ht || 0,
-      amount_tva: purchaseOrder?.amount_tva || 0,
-      amount_ttc: purchaseOrder?.amount_ttc || 0,
-      currency: purchaseOrder?.currency || 'EUR',
-      description: purchaseOrder?.description || '',
-      status: purchaseOrder?.status || 'actif',
-      order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
-      expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
-    },
+    defaultValues: getDefaultValues(purchaseOrder),
   });
+
+  // Synchronise le formulaire quand la modale s'ouvre ou quand le BC change
+  useEffect(() => {
+    if (open) {
+      form.reset(getDefaultValues(purchaseOrder));
+    }
+  }, [open, purchaseOrder?.id, form]);
 
   const handleSubmit = (data: PurchaseOrderFormValues) => {
     onSubmit(data);
-    form.reset();
   };
 
   // Auto-calculate TTC when HT or TVA changes
