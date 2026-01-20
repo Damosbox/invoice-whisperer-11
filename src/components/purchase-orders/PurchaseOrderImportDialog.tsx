@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -142,28 +142,44 @@ export function PurchaseOrderImportDialog({
         <div className="space-y-4">
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
             <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-2">
               Format attendu: CSV avec séparateur point-virgule (;)
             </p>
-            <p className="text-xs text-muted-foreground mb-4">
-              Colonnes requises: po_number, amount_ht, amount_ttc, order_date
-              <br />
-              Colonnes optionnelles: amount_tva, currency, description, status, expected_delivery_date
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="hidden"
-              id="csv-upload"
-            />
-            <Button asChild variant="outline">
-              <label htmlFor="csv-upload" className="cursor-pointer">
-                <Upload className="h-4 w-4 mr-2" />
-                Sélectionner un fichier CSV
-              </label>
-            </Button>
+            
+            <div className="bg-muted/50 p-3 rounded-lg text-xs mb-4 text-left">
+              <p className="font-medium mb-1">Colonnes du fichier CSV :</p>
+              <code className="block overflow-x-auto whitespace-nowrap text-muted-foreground">
+                po_number;amount_ht;amount_tva;amount_ttc;currency;order_date;expected_delivery_date;status;description
+              </code>
+              <p className="mt-2 text-muted-foreground">
+                <span className="font-medium">Requises :</span> po_number, amount_ht, amount_ttc, order_date
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+                id="csv-upload"
+              />
+              <Button asChild variant="outline">
+                <label htmlFor="csv-upload" className="cursor-pointer">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Sélectionner un fichier CSV
+                </label>
+              </Button>
+              <a 
+                href="/templates/purchase_orders_template.csv" 
+                download="template_bons_commande.csv"
+                className="inline-flex items-center text-sm text-primary hover:underline"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Télécharger le modèle
+              </a>
+            </div>
           </div>
 
           {error && (

@@ -1,0 +1,4 @@
+po_number;amount_ht;amount_tva;amount_ttc;currency;order_date;expected_delivery_date;status;description
+BC-2024-001;10000.00;1800.00;11800.00;EUR;2024-01-15;2024-02-15;actif;Fournitures de bureau
+BC-2024-002;25000.00;4500.00;29500.00;EUR;2024-01-20;2024-03-01;actif;Equipement informatique
+BC-2024-003;5000.00;900.00;5900.00;USD;2024-01-25;;actif;Services de maintenance
