@@ -3,6 +3,7 @@ import { Invoice, InvoiceStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   Dialog,
   DialogContent,
@@ -11,6 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   CheckCircle, 
   XCircle, 
@@ -21,10 +29,18 @@ import {
   FileCheck,
   Ban
 } from 'lucide-react';
+import { DisputeCategory, DisputePriority } from '@/hooks/useDisputes';
+
+export interface DisputeData {
+  category: DisputeCategory;
+  priority: DisputePriority;
+  description: string;
+}
 
 interface WorkflowActionsProps {
   invoice: Invoice;
   onStatusChange: (newStatus: InvoiceStatus, rejectionReason?: string) => void;
+  onCreateDispute?: (data: DisputeData) => void;
   isUpdating: boolean;
 }
 
@@ -99,14 +115,18 @@ const transitions: WorkflowTransition[] = [
   },
 ];
 
-export function WorkflowActions({ invoice, onStatusChange, isUpdating }: WorkflowActionsProps) {
+export function WorkflowActions({ invoice, onStatusChange, onCreateDispute, isUpdating }: WorkflowActionsProps) {
   const [showReasonDialog, setShowReasonDialog] = useState(false);
   const [pendingTransition, setPendingTransition] = useState<WorkflowTransition | null>(null);
   const [reason, setReason] = useState('');
+  const [disputeCategory, setDisputeCategory] = useState<DisputeCategory>('other');
+  const [disputePriority, setDisputePriority] = useState<DisputePriority>('medium');
 
   const availableTransitions = transitions.filter(t => 
     t.from.includes(invoice.status)
   );
+
+  const isDisputeTransition = pendingTransition?.to === 'litige';
 
   const handleTransition = (transition: WorkflowTransition) => {
     if (transition.requiresReason) {
@@ -119,11 +139,22 @@ export function WorkflowActions({ invoice, onStatusChange, isUpdating }: Workflo
 
   const confirmTransition = () => {
     if (pendingTransition) {
-      // INV-10: Pass rejection reason to parent for saving
-      onStatusChange(pendingTransition.to, reason.trim() || undefined);
+      // If creating a dispute, call the dedicated handler
+      if (pendingTransition.to === 'litige' && onCreateDispute) {
+        onCreateDispute({
+          category: disputeCategory,
+          priority: disputePriority,
+          description: reason.trim(),
+        });
+      } else {
+        // INV-10: Pass rejection reason to parent for saving
+        onStatusChange(pendingTransition.to, reason.trim() || undefined);
+      }
       setShowReasonDialog(false);
       setPendingTransition(null);
       setReason('');
+      setDisputeCategory('other');
+      setDisputePriority('medium');
     }
   };
 
@@ -174,16 +205,59 @@ export function WorkflowActions({ invoice, onStatusChange, isUpdating }: Workflo
           <DialogHeader>
             <DialogTitle>{pendingTransition?.label}</DialogTitle>
             <DialogDescription>
-              Veuillez indiquer la raison de cette action.
+              {isDisputeTransition 
+                ? 'Veuillez renseigner les détails du litige.'
+                : 'Veuillez indiquer la raison de cette action.'}
             </DialogDescription>
           </DialogHeader>
           
-          <Textarea
-            placeholder="Décrivez la raison..."
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="min-h-[100px]"
-          />
+          <div className="space-y-4">
+            {isDisputeTransition && (
+              <>
+                <div className="space-y-2">
+                  <Label>Catégorie du litige</Label>
+                  <Select value={disputeCategory} onValueChange={(v) => setDisputeCategory(v as DisputeCategory)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="amount_mismatch">Écart de montant</SelectItem>
+                      <SelectItem value="quality_issue">Problème qualité</SelectItem>
+                      <SelectItem value="delivery_issue">Problème livraison</SelectItem>
+                      <SelectItem value="duplicate">Doublon</SelectItem>
+                      <SelectItem value="missing_po">BC manquant</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Priorité</Label>
+                  <Select value={disputePriority} onValueChange={(v) => setDisputePriority(v as DisputePriority)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une priorité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Basse</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Haute</SelectItem>
+                      <SelectItem value="critical">Critique</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            <div className="space-y-2">
+              <Label>{isDisputeTransition ? 'Description du litige' : 'Raison'}</Label>
+              <Textarea
+                placeholder={isDisputeTransition ? 'Décrivez le litige en détail...' : 'Décrivez la raison...'}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowReasonDialog(false)}>
@@ -194,7 +268,7 @@ export function WorkflowActions({ invoice, onStatusChange, isUpdating }: Workflo
               onClick={confirmTransition}
               disabled={!reason.trim()}
             >
-              Confirmer
+              {isDisputeTransition ? 'Créer le litige' : 'Confirmer'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -11,9 +11,10 @@ import { ArrowLeft, AlertTriangle, FileText, Download, ExternalLink } from 'luci
 import { PdfViewer } from '@/components/invoice-detail/PdfViewer';
 import { OcrFieldsDisplay } from '@/components/invoice-detail/OcrFieldsDisplay';
 import { InvoiceEditForm } from '@/components/invoice-detail/InvoiceEditForm';
-import { WorkflowActions } from '@/components/invoice-detail/WorkflowActions';
+import { WorkflowActions, DisputeData } from '@/components/invoice-detail/WorkflowActions';
 import { MatchingInfo } from '@/components/invoice-detail/MatchingInfo';
 import { ApprovalWorkflowPanel } from '@/components/approval/ApprovalWorkflowPanel';
+import { useCreateDispute } from '@/hooks/useDisputes';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +50,7 @@ export default function InvoiceDetail() {
   const source = searchParams.get('source');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const createDispute = useCreateDispute();
   const [isEditing, setIsEditing] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [highlightedField, setHighlightedField] = useState<OcrField | null>(null);
@@ -294,7 +296,15 @@ export default function InvoiceDetail() {
               }
               updateMutation.mutate(updates);
             }}
-            isUpdating={updateMutation.isPending}
+            onCreateDispute={(disputeData: DisputeData) => {
+              createDispute.mutate({
+                invoice_id: invoice.id,
+                category: disputeData.category,
+                priority: disputeData.priority,
+                description: disputeData.description,
+              });
+            }}
+            isUpdating={updateMutation.isPending || createDispute.isPending}
           />
         </div>
       </div>
