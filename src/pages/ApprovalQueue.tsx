@@ -150,7 +150,7 @@ export default function ApprovalQueue() {
                         <TableRow 
                           key={invoice.id} 
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate(`/invoices/${invoice.id}`)}
+                          onClick={() => navigate(`/invoices/${invoice.id}?source=approval`)}
                         >
                           <TableCell className="font-medium">
                             {invoice.invoice_number || 'Non extrait'}
