@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useImportSuppliers, SupplierFormData } from '@/hooks/useSuppliers';
+import { t } from '@/lib/translations';
 
 interface SupplierImportDialogProps {
   open: boolean;
@@ -26,7 +27,7 @@ const CSV_HEADERS = ['name', 'fiscal_identifier', 'company_identifier', 'country
 function parseCSV(content: string): ParseResult {
   const lines = content.split(/\r?\n/).filter(line => line.trim());
   if (lines.length < 2) {
-    return { valid: [], errors: ['Le fichier doit contenir au moins une ligne d\'en-tête et une ligne de données'] };
+    return { valid: [], errors: [t.csv.minLines] };
   }
 
   const headerLine = lines[0].toLowerCase();
@@ -34,7 +35,7 @@ function parseCSV(content: string): ParseResult {
   
   const nameIndex = headers.findIndex(h => h === 'name' || h === 'nom');
   if (nameIndex === -1) {
-    return { valid: [], errors: ['Colonne "name" ou "nom" requise'] };
+    return { valid: [], errors: [t.csv.nameColumnRequired] };
   }
 
   const headerMap: Record<string, number> = {};
@@ -54,7 +55,7 @@ function parseCSV(content: string): ParseResult {
     
     const name = values[headerMap['name']]?.trim();
     if (!name) {
-      errors.push(`Ligne ${i + 1}: Nom manquant`);
+      errors.push(t.csv.missingName(i + 1));
       continue;
     }
 
@@ -72,7 +73,7 @@ function parseCSV(content: string): ParseResult {
     if (headerMap['email'] !== undefined) {
       const email = values[headerMap['email']];
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errors.push(`Ligne ${i + 1}: Email invalide "${email}"`);
+        errors.push(t.csv.invalidEmail(i + 1, email));
         continue;
       }
       supplier.email = email || undefined;
@@ -158,19 +159,32 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <Alert className="flex-1">
-              <FileText className="h-4 w-4" />
-              <AlertDescription className="text-xs">
-                Colonnes: name (requis), fiscal_identifier, company_identifier, country, email, phone, iban...
-              </AlertDescription>
-            </Alert>
-            <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
-              <Download className="h-4 w-4 mr-1" />
-              Template
-            </Button>
+          {/* Format attendu */}
+          <div className="bg-muted/50 p-3 rounded-lg text-sm space-y-2">
+            <p className="font-medium">Format attendu (séparateur: point-virgule) :</p>
+            <code className="text-xs block overflow-x-auto whitespace-nowrap bg-background p-2 rounded border">
+              name;fiscal_identifier;company_identifier;country;email;phone;address;iban;bic;is_critical;payment_terms_days;notes
+            </code>
           </div>
 
+          {/* Actions de téléchargement */}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+              <Download className="h-4 w-4 mr-1" />
+              Générer template
+            </Button>
+            <span className="text-sm text-muted-foreground">ou</span>
+            <a 
+              href="/templates/suppliers_template.csv" 
+              download="template_fournisseurs.csv"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
+              <FileText className="h-4 w-4" />
+              Télécharger exemple avec données
+            </a>
+          </div>
+
+          {/* Zone d'upload */}
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
             <input
               type="file"
@@ -187,13 +201,14 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
             </label>
           </div>
 
+          {/* Résultats du parsing */}
           {parseResult && (
             <div className="space-y-2">
               {parseResult.valid.length > 0 && (
                 <Alert className="border-green-500/50 bg-green-500/10">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <AlertDescription className="text-green-700 dark:text-green-400">
-                    {parseResult.valid.length} fournisseur(s) prêt(s) à importer
+                    {t.csv.readyToImport(parseResult.valid.length)}
                   </AlertDescription>
                 </Alert>
               )}
@@ -208,7 +223,7 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
                       ))}
                       {parseResult.errors.length > 5 && (
                         <div className="text-muted-foreground">
-                          ...et {parseResult.errors.length - 5} autres erreurs
+                          {t.csv.andMoreErrors(parseResult.errors.length - 5)}
                         </div>
                       )}
                     </div>
@@ -218,6 +233,7 @@ export function SupplierImportDialog({ open, onOpenChange }: SupplierImportDialo
             </div>
           )}
 
+          {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleClose}>
               Annuler

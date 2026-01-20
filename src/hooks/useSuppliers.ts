@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { t } from '@/lib/translations';
 
 export interface SupplierFormData {
   name: string;
@@ -70,10 +71,10 @@ export function useCreateSupplier() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success('Fournisseur créé avec succès');
+      toast.success(t.suppliers.created);
     },
     onError: (error: Error) => {
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(t.suppliers.error(error.message));
     },
   });
 }
@@ -94,10 +95,10 @@ export function useUpdateSupplier() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success('Fournisseur mis à jour avec succès');
+      toast.success(t.suppliers.updated);
     },
     onError: (error: Error) => {
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(t.suppliers.error(error.message));
     },
   });
 }
@@ -115,10 +116,10 @@ export function useDeleteSupplier() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success('Fournisseur supprimé');
+      toast.success(t.suppliers.deleted);
     },
     onError: (error: Error) => {
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(t.suppliers.error(error.message));
     },
   });
 }
@@ -137,10 +138,10 @@ export function useImportSuppliers() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success(`${data?.length || 0} fournisseurs importés avec succès`);
+      toast.success(t.suppliers.imported(data?.length || 0));
     },
     onError: (error: Error) => {
-      toast.error(`Erreur d'import: ${error.message}`);
+      toast.error(t.suppliers.importError(error.message));
     },
   });
 }

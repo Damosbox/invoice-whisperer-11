@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { useCreateSupplier, useUpdateSupplier, SupplierFormData } from '@/hooks/useSuppliers';
 import { Tables } from '@/integrations/supabase/types';
+import { t } from '@/lib/translations';
 
 const COUNTRIES = [
   { code: 'CI', name: 'Côte d\'Ivoire' },
@@ -52,11 +53,11 @@ const COUNTRIES = [
 ];
 
 const supplierSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(255),
+  name: z.string().min(1, t.validation.nameRequired).max(255),
   fiscal_identifier: z.string().max(50).optional().or(z.literal('')),
   company_identifier: z.string().max(50).optional().or(z.literal('')),
   country: z.string().default('CI'),
-  email: z.string().email('Email invalide').optional().or(z.literal('')),
+  email: z.string().email(t.validation.invalidEmail).optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(500).optional().or(z.literal('')),
   iban: z.string().max(34).optional().or(z.literal('')),
