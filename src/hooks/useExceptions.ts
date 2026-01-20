@@ -50,6 +50,19 @@ export function useResolveException() {
           };
           break;
         case 'reject':
+          // Create a dispute entry first
+          const { error: disputeError } = await supabase
+            .from('disputes')
+            .insert({
+              invoice_id: id,
+              category: 'other',
+              description: 'Litige créé depuis la gestion des exceptions',
+              status: 'open',
+              priority: 'medium',
+            });
+          
+          if (disputeError) throw disputeError;
+          
           updates = {
             status: 'litige',
           };
@@ -80,10 +93,11 @@ export function useResolveException() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['exceptions'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['disputes'] });
       
       const messages = {
         validate: 'Exception validée, facture envoyée en approbation',
-        reject: 'Facture mise en litige',
+        reject: 'Litige créé avec succès',
         reprocess: 'Facture renvoyée au traitement',
       };
       toast.success(messages[variables.action]);
