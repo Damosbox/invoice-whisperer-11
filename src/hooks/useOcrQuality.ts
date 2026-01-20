@@ -77,10 +77,13 @@ export function useOcrQualityBySupplier() {
         stats.total_invoices++;
 
         if (inv.ocr_confidence_score !== null) {
+          // Score is stored as percentage (0-100), normalize to decimal (0-1)
+          const score = inv.ocr_confidence_score / 100;
           const currentTotal = (stats.avg_confidence || 0) * (stats.total_invoices - 1);
-          stats.avg_confidence = (currentTotal + inv.ocr_confidence_score) / stats.total_invoices;
+          stats.avg_confidence = (currentTotal + score) / stats.total_invoices;
 
-          if (inv.ocr_confidence_score < 0.7) {
+          // Compare against 70% threshold (score is 0-100 in DB)
+          if (inv.ocr_confidence_score < 70) {
             stats.low_confidence_count++;
           }
         }
@@ -120,12 +123,14 @@ export function useOcrGlobalStats() {
 
       const totalInvoices = invoices?.length || 0;
       const invoicesWithScore = invoices?.filter(i => i.ocr_confidence_score !== null) || [];
+      // Score is stored as percentage (0-100), normalize to decimal (0-1)
       const avgConfidence = invoicesWithScore.length > 0
-        ? invoicesWithScore.reduce((sum, i) => sum + (i.ocr_confidence_score || 0), 0) / invoicesWithScore.length
+        ? invoicesWithScore.reduce((sum, i) => sum + (i.ocr_confidence_score || 0), 0) / invoicesWithScore.length / 100
         : 0;
 
+      // Compare against 70% threshold (score is 0-100 in DB)
       const lowConfidenceCount = invoices?.filter(i => 
-        i.ocr_confidence_score !== null && i.ocr_confidence_score < 0.7
+        i.ocr_confidence_score !== null && i.ocr_confidence_score < 70
       ).length || 0;
 
       const pendingValidationCount = invoices?.filter(i => 
@@ -154,10 +159,11 @@ export function useOcrGlobalStats() {
         data.count++;
       });
 
+      // Normalize monthly averages to decimal (0-1)
       const confidenceByMonth = Array.from(monthlyData.entries())
         .map(([month, data]) => ({
           month,
-          avgConfidence: data.sum / data.count,
+          avgConfidence: (data.sum / data.count) / 100,
           count: data.count,
         }))
         .sort((a, b) => a.month.localeCompare(b.month))
