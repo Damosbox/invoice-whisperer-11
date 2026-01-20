@@ -1,0 +1,3 @@
+name;fiscal_identifier;company_identifier;country;email;phone;address;iban;bic;is_critical;payment_terms_days;notes
+Exemple SARL;CI123456789;RCCM-ABJ-2024-B-12345;CI;contact@exemple.ci;+225 07 00 00 00;Abidjan Cocody;CI93 0001 0001 0000 0000 0000 001;BICICIAB;false;30;Notes exemple
+ABC Industries;CI987654321;RCCM-ABJ-2024-B-54321;CI;info@abc-industries.ci;+225 05 11 22 33;Abidjan Plateau;CI93 0002 0002 0000 0000 0000 002;SGBFCIAB;true;45;Fournisseur critique
