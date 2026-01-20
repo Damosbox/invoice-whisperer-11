@@ -108,7 +108,7 @@ export default function OcrValidationQueue() {
               <TableBody>
                 {invoices.map((invoice) => {
                   const lowConfidenceCount = countLowConfidenceFields(invoice);
-                  const confidencePercent = (invoice.ocr_confidence_score || 0) * 100;
+                  const confidencePercent = invoice.ocr_confidence_score || 0;
                   
                   return (
                     <TableRow 
