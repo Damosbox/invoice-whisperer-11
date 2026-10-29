@@ -127,7 +127,7 @@ export default function InvoiceMatching() {
   // Mutation for saving match
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const updates: Record<string, unknown> = {
+      const updates: import("@/integrations/supabase/types").Database["public"]["Tables"]["invoices"]["Update"] = {
         purchase_order_id: selectedPO,
         delivery_note_id: selectedBL,
         match_status: selectedPO ? 'match_automatique' : 'aucun_match',
